@@ -247,75 +247,90 @@
         </div>
     </div>
 
-<script>
-    // 초기 접속자 수 표시
-    socket.on('initial user count', (count) => {
-        updateUserCount(count);
-    });
-
-    // 실시간 접속자 수 업데이트
-    socket.on('user count update', (count) => {
-        updateUserCount(count);
-    });
-
-    function updateUserCount(count) {
-        const roomName = document.getElementById('room-name').textContent;
-        const currentUsers = document.getElementById('current-users');
-        
-        // 현재 방의 접속자 수 업데이트
-        if (roomName === '공개방') {
-            currentUsers.textContent = count.public;
-        } else {
-            currentUsers.textContent = count.private;
-        }
-        
-        // 다른 방의 접속자 수 업데이트
-        document.getElementById('public-count').textContent = count.public;
-        document.getElementById('private-count').textContent = count.private;
-    }
-
-    socket.on('chat message', (data) => {
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const messageInput = document.getElementById('message');
         const messagesDiv = document.getElementById('messages');
-        const messageDiv = document.createElement('div');
-        
-        if (data.type === 'system') {
-            messageDiv.className = 'message system';
-            messageDiv.textContent = data.text;
-        } else {
-            const isSent = data.username === localStorage.getItem('chatUsername');
-            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+        const userCountDiv = document.getElementById('user-count');
+
+        // 페이지 로드 시 채팅방 입장
+        window.onload = function() {
+            const username = localStorage.getItem('chatUsername');
+            const room = localStorage.getItem('chatRoom');
             
-            const messageContent = document.createElement('div');
-            messageContent.className = 'message-content';
-            
-            const usernameDiv = document.createElement('div');
-            usernameDiv.className = 'username';
-            usernameDiv.textContent = data.username;
-            messageContent.appendChild(usernameDiv);
-            
-            if (data.text) {
-                const textDiv = document.createElement('div');
-                textDiv.textContent = data.text;
-                messageContent.appendChild(textDiv);
-            }
-            
-            if (data.image) {
-                const img = document.createElement('img');
-                img.src = data.image;
-                messageContent.appendChild(img);
+            if (!username || !room) {
+                window.location.href = '/login.html';
+                return;
             }
 
-            const timeDiv = document.createElement('div');
-            timeDiv.className = 'message-time';
-            timeDiv.textContent = data.time;
-            messageContent.appendChild(timeDiv);
-            
-            messageDiv.appendChild(messageContent);
+            socket.emit('join', { username, room });
+        };
+
+        // 메시지 전송
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                socket.emit('chat message', {
+                    text: message,
+                    username: localStorage.getItem('chatUsername'),
+                    room: localStorage.getItem('chatRoom')
+                });
+                messageInput.value = '';
+            }
         }
-        
-        messagesDiv.appendChild(messageDiv);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    });
-</script> 
+
+        // Enter 키로 메시지 전송
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 메시지 수신
+        socket.on('chat message', (data) => {
+            const messageDiv = document.createElement('div');
+            
+            if (data.type === 'system') {
+                messageDiv.className = 'message system';
+                messageDiv.textContent = data.text;
+            } else {
+                const isSent = data.username === localStorage.getItem('chatUsername');
+                messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+                
+                const senderDiv = document.createElement('div');
+                senderDiv.className = 'sender';
+                senderDiv.textContent = data.username;
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'content';
+                contentDiv.textContent = data.text;
+                
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'timestamp';
+                timeDiv.textContent = data.time;
+                
+                messageDiv.appendChild(senderDiv);
+                messageDiv.appendChild(contentDiv);
+                messageDiv.appendChild(timeDiv);
+            }
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        });
+
+        // 사용자 수 업데이트
+        socket.on('user count update', (count) => {
+            const room = localStorage.getItem('chatRoom');
+            userCountDiv.textContent = `${room === 'public' ? count.public : count.private}명`;
+        });
+
+        // 채팅방 나가기
+        function exitChat() {
+            localStorage.removeItem('chatUsername');
+            localStorage.removeItem('chatRoom');
+            window.location.href = '/login.html';
+        }
+    </script>
 </body>
 </html> 
