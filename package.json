@@ -5,10 +5,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "echo 'No build step required'"
+    "build": "echo 'No build step required'",
+    "dev": "node server.js"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": "18.x"
   },
   "keywords": [],
   "author": "",
