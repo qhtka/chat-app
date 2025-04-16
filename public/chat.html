@@ -24,13 +24,13 @@
 </style>
 
 <script>
-socket.on('user count', (count) => {
+socket.on('user count', (data) => {
     const roomName = document.getElementById('room-name').textContent;
     const currentUsers = document.getElementById('current-users');
     if (roomName === '공개방') {
-        currentUsers.textContent = count.public;
+        currentUsers.textContent = data.public || 0;
     } else {
-        currentUsers.textContent = count.private;
+        currentUsers.textContent = data.private || 0;
     }
 });
 </script> 

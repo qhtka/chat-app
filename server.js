@@ -109,8 +109,10 @@ io.on('connection', (socket) => {
         socket.join(room);
         userCount[room]++;
         
-        // 모든 클라이언트에게 접속자 수 업데이트
-        io.emit('user count', userCount);
+        // 해당 방의 클라이언트에게만 접속자 수 업데이트
+        io.to(room).emit('user count', {
+            [room]: userCount[room]
+        });
         
         // 이전 메시지 기록 전송
         socket.emit('message history', messageHistory[room]);
@@ -143,7 +145,9 @@ io.on('connection', (socket) => {
         rooms.forEach(room => {
             if (room === 'public' || room === 'private') {
                 userCount[room]--;
-                io.emit('user count', userCount);
+                io.to(room).emit('user count', {
+                    [room]: userCount[room]
+                });
             }
         });
     });
