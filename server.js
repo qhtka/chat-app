@@ -7,12 +7,56 @@ const io = require('socket.io')(http, {
         methods: ["GET", "POST"]
     }
 });
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// 이미지 저장 설정
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadDir = 'public/uploads';
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB 제한
+    fileFilter: (req, file, cb) => {
+        const filetypes = /jpeg|jpg|png|gif/;
+        const mimetype = filetypes.test(file.mimetype);
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        
+        if (mimetype && extname) {
+            return cb(null, true);
+        }
+        cb(new Error('이미지 파일만 업로드 가능합니다.'));
+    }
+});
 
 // 메시지 기록을 저장할 배열
 const messageHistory = [];
 
 // 정적 파일 제공
 app.use(express.static('public'));
+app.use('/uploads', express.static('uploads'));
+
+// 이미지 업로드 라우트
+app.post('/upload', upload.single('image'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: '이미지 업로드에 실패했습니다.' });
+    }
+    res.json({ 
+        url: `/uploads/${req.file.filename}`,
+        filename: req.file.filename
+    });
+});
 
 // 로그인 페이지
 app.get('/login.html', (req, res) => {
@@ -33,7 +77,11 @@ io.on('connection', (socket) => {
 
     // 채팅 메시지 처리
     socket.on('chat message', (data) => {
-        const message = `${data.username}: ${data.message}`;
+        const message = {
+            username: data.username,
+            text: data.message,
+            image: data.image
+        };
         // 메시지를 기록에 추가
         messageHistory.push(message);
         // 모든 클라이언트에게 메시지 전송
