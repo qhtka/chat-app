@@ -40,8 +40,11 @@ const upload = multer({
     }
 });
 
-// 메시지 기록을 저장할 배열
-const messageHistory = [];
+// 메시지 기록을 저장할 객체 (방별로 저장)
+const messageHistory = {
+    public: [],
+    private: []
+};
 
 // 정적 파일 제공
 app.use(express.static('public'));
@@ -72,20 +75,40 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
     console.log('사용자가 연결되었습니다.');
 
-    // 연결 시 이전 메시지 기록 전송
-    socket.emit('message history', messageHistory);
+    // 방 입장 처리
+    socket.on('join room', (data) => {
+        const { room, username } = data;
+        socket.join(room);
+        console.log(`${username}님이 ${room}방에 입장했습니다.`);
+        
+        // 해당 방의 이전 메시지 기록 전송
+        socket.emit('message history', messageHistory[room]);
+        
+        // 입장 메시지 전송
+        const message = {
+            username: '시스템',
+            text: `${username}님이 입장했습니다.`,
+            type: 'system'
+        };
+        messageHistory[room].push(message);
+        io.to(room).emit('chat message', message);
+    });
 
     // 채팅 메시지 처리
     socket.on('chat message', (data) => {
-        const message = {
-            username: data.username,
-            text: data.message,
-            image: data.image
+        const { room, username, message, image } = data;
+        const chatMessage = {
+            username: username,
+            text: message,
+            image: image,
+            type: 'user'
         };
-        // 메시지를 기록에 추가
-        messageHistory.push(message);
-        // 모든 클라이언트에게 메시지 전송
-        io.emit('chat message', message);
+        
+        // 메시지를 해당 방의 기록에 추가
+        messageHistory[room].push(chatMessage);
+        
+        // 해당 방의 모든 클라이언트에게 메시지 전송
+        io.to(room).emit('chat message', chatMessage);
     });
 
     // 연결 해제

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>로그인 - 실시간 채팅</title>
+    <title>실시간 채팅 - 방 선택</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,17 +15,41 @@
             align-items: center;
             height: 100vh;
         }
-        .login-container {
+        .container {
             background-color: white;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 300px;
+            width: 400px;
         }
         h1 {
             text-align: center;
             color: #333;
             margin-bottom: 20px;
+        }
+        .room-option {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .room-option:hover {
+            background-color: #f8f9fa;
+            border-color: #007bff;
+        }
+        .room-option h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .room-option p {
+            margin: 0;
+            color: #666;
+        }
+        .password-input {
+            display: none;
+            margin-top: 10px;
         }
         input {
             width: 100%;
@@ -34,18 +58,6 @@
             border: 1px solid #dee2e6;
             border-radius: 5px;
             box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
         }
         .error {
             color: red;
@@ -56,18 +68,30 @@
     </style>
 </head>
 <body>
-    <div class="login-container">
+    <div class="container">
         <h1>실시간 채팅</h1>
         <div class="error" id="error"></div>
         <input type="text" id="username" placeholder="닉네임을 입력하세요" required>
-        <input type="password" id="password" placeholder="비밀번호를 입력하세요" required>
-        <button onclick="login()">채팅 시작하기</button>
+        
+        <div class="room-option" onclick="selectRoom('public')">
+            <h3>공개방</h3>
+            <p>비밀번호가 필요한 채팅방입니다.</p>
+            <div class="password-input" id="public-password">
+                <input type="password" id="public-password-input" placeholder="비밀번호를 입력하세요">
+            </div>
+        </div>
+
+        <div class="room-option" onclick="selectRoom('private')">
+            <h3>비공개방</h3>
+            <p>비밀번호 없이 입장할 수 있는 채팅방입니다.</p>
+        </div>
     </div>
 
     <script>
-        function login() {
+        let selectedRoom = null;
+
+        function selectRoom(roomType) {
             const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
             const error = document.getElementById('error');
             
             if (!username) {
@@ -76,29 +100,41 @@
                 return;
             }
 
-            if (!password) {
-                error.textContent = '비밀번호를 입력해주세요';
-                error.style.display = 'block';
-                return;
+            selectedRoom = roomType;
+            
+            if (roomType === 'public') {
+                document.getElementById('public-password').style.display = 'block';
+                document.getElementById('public-password-input').focus();
+            } else {
+                enterRoom();
+            }
+        }
+
+        function enterRoom() {
+            const username = document.getElementById('username').value.trim();
+            const error = document.getElementById('error');
+            
+            if (selectedRoom === 'public') {
+                const password = document.getElementById('public-password-input').value;
+                if (password !== '0724') {
+                    error.textContent = '비밀번호가 틀렸습니다. 관리자에게 문의하세요.';
+                    error.style.display = 'block';
+                    return;
+                }
             }
 
-            // 비밀번호 검증
-            if (password !== '0724') {
-                error.textContent = '비밀번호가 틀렸습니다. 관리자에게 문의하세요.';
-                error.style.display = 'block';
-                return;
-            }
-
-            // 로컬 스토리지에 닉네임 저장
+            // 로컬 스토리지에 닉네임과 방 정보 저장
             localStorage.setItem('chatUsername', username);
+            localStorage.setItem('chatRoom', selectedRoom);
+            
             // 채팅 페이지로 이동
             window.location.href = '/';
         }
 
-        // Enter 키로 로그인
-        document.getElementById('password').addEventListener('keypress', (e) => {
+        // Enter 키로 비밀번호 입력
+        document.getElementById('public-password-input')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                login();
+                enterRoom();
             }
         });
     </script>
