@@ -4,6 +4,16 @@
         <div class="user-count">
             현재 접속자: <span id="current-users">0</span>명
         </div>
+        <div class="user-counts">
+            <div class="other-room-count">
+                <span class="room-label">공개방:</span>
+                <span id="public-count">0</span>명
+            </div>
+            <div class="other-room-count">
+                <span class="room-label">비공개방:</span>
+                <span id="private-count">0</span>명
+            </div>
+        </div>
     </div>
 </div>
 
@@ -20,17 +30,54 @@
 .user-count {
     font-size: 14px;
     color: #6c757d;
+    background-color: #e9ecef;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: bold;
+}
+
+.user-counts {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.other-room-count {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.room-label {
+    font-weight: bold;
 }
 </style>
 
 <script>
-socket.on('user count', (data) => {
-    const roomName = document.getElementById('room-name').textContent;
-    const currentUsers = document.getElementById('current-users');
-    if (roomName === '공개방') {
-        currentUsers.textContent = data.public || 0;
-    } else {
-        currentUsers.textContent = data.private || 0;
+    // 초기 접속자 수 표시
+    socket.on('initial user count', (count) => {
+        updateUserCount(count);
+    });
+
+    // 실시간 접속자 수 업데이트
+    socket.on('user count update', (count) => {
+        updateUserCount(count);
+    });
+
+    function updateUserCount(count) {
+        const roomName = document.getElementById('room-name').textContent;
+        const currentUsers = document.getElementById('current-users');
+        
+        // 현재 방의 접속자 수 업데이트
+        if (roomName === '공개방') {
+            currentUsers.textContent = count.public;
+        } else {
+            currentUsers.textContent = count.private;
+        }
+        
+        // 다른 방의 접속자 수 업데이트
+        document.getElementById('public-count').textContent = count.public;
+        document.getElementById('private-count').textContent = count.private;
     }
-});
 </script> 

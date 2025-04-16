@@ -112,11 +112,20 @@
         const socket = io();
         let selectedRoom = null;
 
-        // 접속자 수 업데이트
-        socket.on('user count', (data) => {
-            document.getElementById('public-count').textContent = `${data.public}명`;
-            document.getElementById('private-count').textContent = `${data.private}명`;
+        // 초기 접속자 수 표시
+        socket.on('initial user count', (count) => {
+            updateUserCount(count);
         });
+
+        // 실시간 접속자 수 업데이트
+        socket.on('user count update', (count) => {
+            updateUserCount(count);
+        });
+
+        function updateUserCount(count) {
+            document.getElementById('public-count').textContent = `${count.public}명`;
+            document.getElementById('private-count').textContent = `${count.private}명`;
+        }
 
         function selectRoom(roomType) {
             const username = document.getElementById('username').value.trim();

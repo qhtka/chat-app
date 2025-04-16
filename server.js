@@ -104,15 +104,16 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
     console.log('a user connected');
 
+    // 새로운 연결 시 현재 접속자 수 전송
+    socket.emit('initial user count', userCount);
+
     socket.on('join room', (data) => {
         const { room, username } = data;
         socket.join(room);
         userCount[room]++;
         
-        // 해당 방의 클라이언트에게만 접속자 수 업데이트
-        io.to(room).emit('user count', {
-            [room]: userCount[room]
-        });
+        // 모든 클라이언트에게 접속자 수 업데이트
+        io.emit('user count update', userCount);
         
         // 이전 메시지 기록 전송
         socket.emit('message history', messageHistory[room]);
@@ -145,9 +146,8 @@ io.on('connection', (socket) => {
         rooms.forEach(room => {
             if (room === 'public' || room === 'private') {
                 userCount[room]--;
-                io.to(room).emit('user count', {
-                    [room]: userCount[room]
-                });
+                // 모든 클라이언트에게 접속자 수 업데이트
+                io.emit('user count update', userCount);
             }
         });
     });
