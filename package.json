@@ -4,9 +4,7 @@
   "description": "실시간 채팅 애플리케이션",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "build": "echo 'No build step required'",
-    "dev": "node server.js"
+    "start": "node server.js"
   },
   "engines": {
     "node": "18.x"
