@@ -371,6 +371,7 @@
         const messageInput = document.getElementById('message-input');
         const messagesDiv = document.getElementById('messages');
         const userCountDiv = document.getElementById('user-count');
+        const roomNameSpan = document.getElementById('room-name');
 
         // 페이지 로드 시 채팅방 입장
         window.onload = function() {
@@ -382,6 +383,7 @@
                 return;
             }
 
+            roomNameSpan.textContent = room === 'public' ? '공개 채팅방' : '비공개 채팅방';
             socket.emit('join', { username, room });
         };
 
