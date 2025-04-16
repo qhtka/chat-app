@@ -128,11 +128,19 @@ io.on('connection', (socket) => {
 
     socket.on('chat message', (data) => {
         const { room, username, message, image } = data;
+        const now = new Date();
+        const time = now.toLocaleTimeString('ko-KR', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+        });
+        
         const messageData = {
             type: 'message',
             username,
             text: message,
-            image
+            image,
+            time: time
         };
         
         messageHistory[room].push(messageData);

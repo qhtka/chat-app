@@ -69,6 +69,26 @@
     word-wrap: break-word;
     display: flex;
     flex-direction: column;
+    position: relative;
+}
+
+.message-time {
+    font-size: 0.7em;
+    color: #666;
+    margin-top: 5px;
+    text-align: right;
+}
+
+.message.sent .message-time {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.message.received .message-time {
+    color: #666;
+}
+
+.message.system .message-time {
+    display: none;
 }
 
 .message.sent {
@@ -161,6 +181,11 @@
                 img.src = data.image;
                 messageDiv.appendChild(img);
             }
+
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = data.time;
+            messageDiv.appendChild(timeDiv);
         }
         
         messagesDiv.appendChild(messageDiv);
