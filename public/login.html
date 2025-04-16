@@ -60,16 +60,31 @@
         <h1>실시간 채팅</h1>
         <div class="error" id="error"></div>
         <input type="text" id="username" placeholder="닉네임을 입력하세요" required>
+        <input type="password" id="password" placeholder="비밀번호를 입력하세요" required>
         <button onclick="login()">채팅 시작하기</button>
     </div>
 
     <script>
         function login() {
             const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
             const error = document.getElementById('error');
             
             if (!username) {
                 error.textContent = '닉네임을 입력해주세요';
+                error.style.display = 'block';
+                return;
+            }
+
+            if (!password) {
+                error.textContent = '비밀번호를 입력해주세요';
+                error.style.display = 'block';
+                return;
+            }
+
+            // 비밀번호 검증
+            if (password !== '0724') {
+                error.textContent = '비밀번호가 틀렸습니다. 관리자에게 문의하세요.';
                 error.style.display = 'block';
                 return;
             }
@@ -81,7 +96,7 @@
         }
 
         // Enter 키로 로그인
-        document.getElementById('username').addEventListener('keypress', (e) => {
+        document.getElementById('password').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 login();
             }
