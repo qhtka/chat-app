@@ -46,29 +46,30 @@ const messageHistory = {
     private: []
 };
 
+// 접속자 수 관리
+const userCount = {
+    public: 0,
+    private: 0
+};
+
 // 매일 자정에 공개방 채팅 초기화
 function scheduleDailyReset() {
     const now = new Date();
-    const night = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate() + 1, // 다음 날
-        0, 0, 0 // 자정
-    );
-    const msToMidnight = night.getTime() - now.getTime();
-
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    
+    const timeUntilMidnight = tomorrow - now;
+    
     setTimeout(() => {
-        // 공개방 채팅 초기화
         messageHistory.public = [];
-        // 시스템 메시지 전송
         io.to('public').emit('chat message', {
+            type: 'system',
             username: '시스템',
-            text: '공개방의 채팅이 초기화되었습니다.',
-            type: 'system'
+            text: '공개방의 채팅이 초기화되었습니다.'
         });
-        // 다음 자정을 위해 다시 스케줄링
-        scheduleDailyReset();
-    }, msToMidnight);
+        scheduleDailyReset(); // 다음 자정을 위해 다시 설정
+    }, timeUntilMidnight);
 }
 
 // 자정 초기화 스케줄링 시작
@@ -101,47 +102,50 @@ app.get('/', (req, res) => {
 
 // 소켓 연결 처리
 io.on('connection', (socket) => {
-    console.log('사용자가 연결되었습니다.');
+    console.log('a user connected');
 
-    // 방 입장 처리
     socket.on('join room', (data) => {
         const { room, username } = data;
         socket.join(room);
-        console.log(`${username}님이 ${room}방에 입장했습니다.`);
+        userCount[room]++;
         
-        // 해당 방의 이전 메시지 기록 전송
+        // 모든 클라이언트에게 접속자 수 업데이트
+        io.emit('user count', userCount);
+        
+        // 이전 메시지 기록 전송
         socket.emit('message history', messageHistory[room]);
         
-        // 입장 메시지 전송
-        const message = {
+        // 시스템 메시지 전송
+        io.to(room).emit('chat message', {
+            type: 'system',
             username: '시스템',
-            text: `${username}님이 입장했습니다.`,
-            type: 'system'
-        };
-        messageHistory[room].push(message);
-        io.to(room).emit('chat message', message);
+            text: `${username}님이 입장하셨습니다.`
+        });
     });
 
-    // 채팅 메시지 처리
     socket.on('chat message', (data) => {
         const { room, username, message, image } = data;
-        const chatMessage = {
-            username: username,
+        const messageData = {
+            type: 'message',
+            username,
             text: message,
-            image: image,
-            type: 'user'
+            image
         };
         
-        // 메시지를 해당 방의 기록에 추가
-        messageHistory[room].push(chatMessage);
-        
-        // 해당 방의 모든 클라이언트에게 메시지 전송
-        io.to(room).emit('chat message', chatMessage);
+        messageHistory[room].push(messageData);
+        io.to(room).emit('chat message', messageData);
     });
 
-    // 연결 해제
     socket.on('disconnect', () => {
-        console.log('사용자가 연결을 해제했습니다.');
+        console.log('user disconnected');
+        // 방에서 나갈 때 접속자 수 감소
+        const rooms = Array.from(socket.rooms);
+        rooms.forEach(room => {
+            if (room === 'public' || room === 'private') {
+                userCount[room]--;
+                io.emit('user count', userCount);
+            }
+        });
     });
 });
 

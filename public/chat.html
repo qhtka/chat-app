@@ -1,0 +1,36 @@
+<div class="chat-container">
+    <div class="chat-header">
+        <h2 id="room-name">채팅방</h2>
+        <div class="user-count">
+            현재 접속자: <span id="current-users">0</span>명
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.user-count {
+    font-size: 14px;
+    color: #6c757d;
+}
+</style>
+
+<script>
+socket.on('user count', (count) => {
+    const roomName = document.getElementById('room-name').textContent;
+    const currentUsers = document.getElementById('current-users');
+    if (roomName === '공개방') {
+        currentUsers.textContent = count.public;
+    } else {
+        currentUsers.textContent = count.private;
+    }
+});
+</script> 
