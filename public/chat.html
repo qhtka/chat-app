@@ -52,6 +52,47 @@
 .room-label {
     font-weight: bold;
 }
+
+.message {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+.message.sent {
+    background-color: #007bff;
+    color: white;
+    margin-left: auto;
+    text-align: right;
+}
+
+.message.received {
+    background-color: #f1f1f1;
+    color: black;
+    margin-right: auto;
+}
+
+.message.system {
+    background-color: #ffc107;
+    color: black;
+    text-align: center;
+    margin: 10px auto;
+    max-width: 90%;
+}
+
+.message img {
+    max-width: 100%;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+
+.username {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
 </style>
 
 <script>
@@ -80,4 +121,35 @@
         document.getElementById('public-count').textContent = count.public;
         document.getElementById('private-count').textContent = count.private;
     }
+
+    socket.on('chat message', (data) => {
+        const messagesDiv = document.getElementById('messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${data.type === 'system' ? 'system' : 
+            (data.username === localStorage.getItem('chatUsername') ? 'sent' : 'received')}`;
+        
+        if (data.type === 'system') {
+            messageDiv.textContent = data.text;
+        } else {
+            const usernameDiv = document.createElement('div');
+            usernameDiv.className = 'username';
+            usernameDiv.textContent = data.username;
+            messageDiv.appendChild(usernameDiv);
+            
+            if (data.text) {
+                const textDiv = document.createElement('div');
+                textDiv.textContent = data.text;
+                messageDiv.appendChild(textDiv);
+            }
+            
+            if (data.image) {
+                const img = document.createElement('img');
+                img.src = data.image;
+                messageDiv.appendChild(img);
+            }
+        }
+        
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    });
 </script> 
