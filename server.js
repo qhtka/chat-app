@@ -46,6 +46,34 @@ const messageHistory = {
     private: []
 };
 
+// 매일 자정에 공개방 채팅 초기화
+function scheduleDailyReset() {
+    const now = new Date();
+    const night = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1, // 다음 날
+        0, 0, 0 // 자정
+    );
+    const msToMidnight = night.getTime() - now.getTime();
+
+    setTimeout(() => {
+        // 공개방 채팅 초기화
+        messageHistory.public = [];
+        // 시스템 메시지 전송
+        io.to('public').emit('chat message', {
+            username: '시스템',
+            text: '공개방의 채팅이 초기화되었습니다.',
+            type: 'system'
+        });
+        // 다음 자정을 위해 다시 스케줄링
+        scheduleDailyReset();
+    }, msToMidnight);
+}
+
+// 자정 초기화 스케줄링 시작
+scheduleDailyReset();
+
 // 정적 파일 제공
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
