@@ -129,11 +129,9 @@ io.on('connection', (socket) => {
     socket.on('chat message', (data) => {
         const { room, username, message, image } = data;
         const now = new Date();
-        const time = now.toLocaleTimeString('ko-KR', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: false 
-        });
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const time = `${hours}:${minutes}`;
         
         const messageData = {
             type: 'message',

@@ -72,11 +72,16 @@
     position: relative;
 }
 
+.message-content {
+    display: flex;
+    flex-direction: column;
+}
+
 .message-time {
     font-size: 0.7em;
-    color: #666;
+    opacity: 0.7;
     margin-top: 5px;
-    text-align: right;
+    align-self: flex-end;
 }
 
 .message.sent .message-time {
@@ -165,27 +170,32 @@
             const isSent = data.username === localStorage.getItem('chatUsername');
             messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
             
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
             const usernameDiv = document.createElement('div');
             usernameDiv.className = 'username';
             usernameDiv.textContent = data.username;
-            messageDiv.appendChild(usernameDiv);
+            messageContent.appendChild(usernameDiv);
             
             if (data.text) {
                 const textDiv = document.createElement('div');
                 textDiv.textContent = data.text;
-                messageDiv.appendChild(textDiv);
+                messageContent.appendChild(textDiv);
             }
             
             if (data.image) {
                 const img = document.createElement('img');
                 img.src = data.image;
-                messageDiv.appendChild(img);
+                messageContent.appendChild(img);
             }
 
             const timeDiv = document.createElement('div');
             timeDiv.className = 'message-time';
             timeDiv.textContent = data.time;
-            messageDiv.appendChild(timeDiv);
+            messageContent.appendChild(timeDiv);
+            
+            messageDiv.appendChild(messageContent);
         }
         
         messagesDiv.appendChild(messageDiv);
