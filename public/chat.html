@@ -53,25 +53,36 @@
     font-weight: bold;
 }
 
+#messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
 .message {
     margin: 10px 0;
     padding: 10px;
     border-radius: 10px;
     max-width: 70%;
     word-wrap: break-word;
+    display: flex;
+    flex-direction: column;
 }
 
 .message.sent {
     background-color: #007bff;
     color: white;
-    margin-left: auto;
+    align-self: flex-end;
     text-align: right;
 }
 
 .message.received {
     background-color: #f1f1f1;
     color: black;
-    margin-right: auto;
+    align-self: flex-start;
+    text-align: left;
 }
 
 .message.system {
@@ -80,6 +91,7 @@
     text-align: center;
     margin: 10px auto;
     max-width: 90%;
+    align-self: center;
 }
 
 .message img {
@@ -125,12 +137,14 @@
     socket.on('chat message', (data) => {
         const messagesDiv = document.getElementById('messages');
         const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${data.type === 'system' ? 'system' : 
-            (data.username === localStorage.getItem('chatUsername') ? 'sent' : 'received')}`;
         
         if (data.type === 'system') {
+            messageDiv.className = 'message system';
             messageDiv.textContent = data.text;
         } else {
+            const isSent = data.username === localStorage.getItem('chatUsername');
+            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            
             const usernameDiv = document.createElement('div');
             usernameDiv.className = 'username';
             usernameDiv.textContent = data.username;
