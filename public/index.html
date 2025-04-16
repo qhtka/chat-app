@@ -19,6 +19,14 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             overflow: hidden;
         }
+        .chat-header {
+            padding: 15px 20px;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         .chat-messages {
             height: 400px;
             overflow-y: auto;
@@ -35,13 +43,6 @@
             padding: 20px;
             background-color: #f8f9fa;
             border-top: 1px solid #dee2e6;
-        }
-        #username {
-            width: 150px;
-            padding: 10px;
-            margin-right: 10px;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
         }
         #message {
             flex: 1;
@@ -61,13 +62,22 @@
         button:hover {
             background-color: #0056b3;
         }
+        .logout-btn {
+            background-color: #dc3545;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
     </style>
 </head>
 <body>
     <div class="chat-container">
+        <div class="chat-header">
+            <span id="username-display"></span>
+            <button class="logout-btn" onclick="logout()">로그아웃</button>
+        </div>
         <div class="chat-messages" id="messages"></div>
         <div class="input-container">
-            <input type="text" id="username" placeholder="닉네임을 입력하세요">
             <input type="text" id="message" placeholder="메시지를 입력하세요">
             <button onclick="sendMessage()">전송</button>
         </div>
@@ -75,23 +85,36 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        // 로그인 확인
+        const username = localStorage.getItem('chatUsername');
+        if (!username) {
+            window.location.href = '/login.html';
+        }
+
+        // 닉네임 표시
+        document.getElementById('username-display').textContent = username;
+
         const socket = io();
         const messages = document.getElementById('messages');
         const messageInput = document.getElementById('message');
-        const usernameInput = document.getElementById('username');
 
         // 메시지 전송 함수
         function sendMessage() {
-            const username = usernameInput.value.trim();
             const message = messageInput.value.trim();
             
-            if (username && message) {
+            if (message) {
                 socket.emit('chat message', {
                     username: username,
                     message: message
                 });
                 messageInput.value = '';
             }
+        }
+
+        // 로그아웃 함수
+        function logout() {
+            localStorage.removeItem('chatUsername');
+            window.location.href = '/login.html';
         }
 
         // Enter 키로 메시지 전송

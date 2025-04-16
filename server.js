@@ -14,6 +14,11 @@ const messageHistory = [];
 // 정적 파일 제공
 app.use(express.static('public'));
 
+// 로그인 페이지
+app.get('/login.html', (req, res) => {
+    res.sendFile(__dirname + '/public/login.html');
+});
+
 // 루트 경로
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
