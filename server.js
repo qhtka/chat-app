@@ -1,7 +1,12 @@
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(http, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
 
 // 정적 파일 제공
 app.use(express.static('public'));
@@ -30,5 +35,5 @@ io.on('connection', (socket) => {
 // 서버 시작
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
-    console.log(`서버가 http://localhost:${PORT} 에서 실행 중입니다.`);
+    console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
 });
