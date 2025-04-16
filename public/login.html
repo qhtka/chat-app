@@ -73,16 +73,16 @@
         <div class="error" id="error"></div>
         <input type="text" id="username" placeholder="닉네임을 입력하세요" required>
         
-        <div class="room-option" onclick="selectRoom('public')">
-            <h3>공개방</h3>
+        <div class="room-option" onclick="selectRoom('private')">
+            <h3>비공개방</h3>
             <p>비밀번호가 필요한 채팅방입니다.</p>
-            <div class="password-input" id="public-password">
-                <input type="password" id="public-password-input" placeholder="비밀번호를 입력하세요">
+            <div class="password-input" id="private-password">
+                <input type="password" id="private-password-input" placeholder="비밀번호를 입력하세요">
             </div>
         </div>
 
-        <div class="room-option" onclick="selectRoom('private')">
-            <h3>비공개방</h3>
+        <div class="room-option" onclick="selectRoom('public')">
+            <h3>공개방</h3>
             <p>비밀번호 없이 입장할 수 있는 채팅방입니다.</p>
         </div>
     </div>
@@ -102,9 +102,9 @@
 
             selectedRoom = roomType;
             
-            if (roomType === 'public') {
-                document.getElementById('public-password').style.display = 'block';
-                document.getElementById('public-password-input').focus();
+            if (roomType === 'private') {
+                document.getElementById('private-password').style.display = 'block';
+                document.getElementById('private-password-input').focus();
             } else {
                 enterRoom();
             }
@@ -114,8 +114,8 @@
             const username = document.getElementById('username').value.trim();
             const error = document.getElementById('error');
             
-            if (selectedRoom === 'public') {
-                const password = document.getElementById('public-password-input').value;
+            if (selectedRoom === 'private') {
+                const password = document.getElementById('private-password-input').value;
                 if (password !== '0724') {
                     error.textContent = '비밀번호가 틀렸습니다. 관리자에게 문의하세요.';
                     error.style.display = 'block';
@@ -132,7 +132,7 @@
         }
 
         // Enter 키로 비밀번호 입력
-        document.getElementById('public-password-input')?.addEventListener('keypress', (e) => {
+        document.getElementById('private-password-input')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 enterRoom();
             }

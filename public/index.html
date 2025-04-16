@@ -146,7 +146,7 @@
 
         // 닉네임과 방 정보 표시
         document.getElementById('username-display').textContent = username;
-        document.getElementById('room-info').textContent = room === 'public' ? '공개방' : '비공개방';
+        document.getElementById('room-info').textContent = room === 'private' ? '비공개방' : '공개방';
 
         const socket = io();
         const messages = document.getElementById('messages');
