@@ -3,94 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TELECHAT - 방 선택</title>
+    <title>TELECHAT beta - 방 선택</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #f0f2f5;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
         }
         .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             width: 400px;
+            backdrop-filter: blur(10px);
         }
         h1 {
             text-align: center;
-            color: #007bff;
-            margin-bottom: 20px;
+            color: #2c3e50;
+            margin-bottom: 30px;
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            font-weight: bold;
+            font-weight: 600;
             letter-spacing: 1px;
+            font-size: 2.2em;
         }
         .beta {
-            color: #ff0000;
-            font-size: 0.7em;
+            color: #e74c3c;
+            font-size: 0.5em;
             vertical-align: super;
             margin-left: 5px;
+            font-weight: 400;
         }
         .room-option {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
         .room-option:hover {
-            background-color: #f8f9fa;
-            border-color: #007bff;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: #3498db;
         }
         .room-option h3 {
             margin: 0 0 10px 0;
-            color: #333;
+            color: #2c3e50;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 1.2em;
         }
         .room-option p {
             margin: 0;
-            color: #666;
+            color: #7f8c8d;
+            font-size: 0.95em;
+            line-height: 1.5;
         }
         .room-option .user-count {
-            background-color: #007bff;
+            background-color: #3498db;
             color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
+            padding: 3px 12px;
+            border-radius: 15px;
             font-size: 0.8em;
-        }
-        .password-input {
-            display: none;
-            margin-top: 10px;
+            font-weight: 500;
         }
         input {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
             box-sizing: border-box;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
         .error {
-            color: red;
+            color: #e74c3c;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             display: none;
+            font-size: 0.9em;
+            padding: 10px;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 8px;
         }
         .room-info {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 5px;
-            padding: 5px;
-            background-color: #f8f9fa;
-            border-radius: 3px;
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-top: 8px;
+            padding: 8px;
+            background-color: rgba(0, 0, 0, 0.02);
+            border-radius: 8px;
+            border-left: 3px solid #3498db;
+        }
+        .password-input {
+            display: none;
+            margin-top: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
