@@ -8,6 +8,9 @@ const io = require('socket.io')(http, {
     }
 });
 
+// 메시지 기록을 저장할 배열
+const messageHistory = [];
+
 // 정적 파일 제공
 app.use(express.static('public'));
 
@@ -20,9 +23,15 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
     console.log('사용자가 연결되었습니다.');
 
+    // 연결 시 이전 메시지 기록 전송
+    socket.emit('message history', messageHistory);
+
     // 채팅 메시지 처리
     socket.on('chat message', (data) => {
         const message = `${data.username}: ${data.message}`;
+        // 메시지를 기록에 추가
+        messageHistory.push(message);
+        // 모든 클라이언트에게 메시지 전송
         io.emit('chat message', message);
     });
 
