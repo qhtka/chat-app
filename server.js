@@ -1,11 +1,5 @@
 require('dotenv').config();
 
-// 환경 변수 체크 (임시로 비활성화)
-// if (!process.env.OPENAI_API_KEY) {
-//     console.error('OPENAI_API_KEY 환경 변수가 설정되지 않았습니다.');
-//     process.exit(1);
-// }
-
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
