@@ -302,7 +302,6 @@
             <h3>채팅방 초대 링크</h3>
             <div class="link-actions">
                 <button onclick="copyRoomLink()">링크 복사</button>
-                <button onclick="enterRoom()">입장하기</button>
             </div>
         </div>
         <button class="button" id="enterButton" disabled>입장하기</button>
@@ -341,12 +340,6 @@
             }
         }
 
-        function enterRoom() {
-            if (currentRoomUrl) {
-                window.location.href = currentRoomUrl;
-            }
-        }
-
         // 입장하기 버튼 클릭 이벤트
         document.getElementById('enterButton').addEventListener('click', () => {
             const nickname = document.getElementById('nickname').value.trim();
@@ -360,6 +353,9 @@
                 
                 // 링크 컨테이너 표시
                 document.querySelector('.link-container').style.display = 'block';
+                
+                // 채팅방으로 이동
+                window.location.href = currentRoomUrl;
             }
         });
 
