@@ -298,10 +298,11 @@
                 <p>팀 프로젝트를 위한 임시 채팅방입니다.</p>
             </div>
         </div>
-        <div class="link-container">
+        <div class="link-container" style="display: none;">
             <h3>채팅방 초대 링크</h3>
             <div class="link-actions">
                 <button onclick="copyRoomLink()">링크 복사</button>
+                <button onclick="enterRoom()">입장하기</button>
             </div>
         </div>
         <button class="button" id="enterButton" disabled>입장하기</button>
@@ -309,6 +310,7 @@
 
     <script>
         let selectedRoomType = null;
+        let currentRoomUrl = null;
 
         // 방 선택 이벤트
         document.querySelectorAll('.room-option').forEach(option => {
@@ -330,12 +332,19 @@
         }
 
         function copyRoomLink() {
-            const roomUrl = document.querySelector('.link-container').getAttribute('data-url');
-            navigator.clipboard.writeText(roomUrl).then(() => {
-                alert('채팅방 링크가 클립보드에 복사되었습니다.');
-            }).catch(err => {
-                console.error('링크 복사 실패:', err);
-            });
+            if (currentRoomUrl) {
+                navigator.clipboard.writeText(currentRoomUrl).then(() => {
+                    alert('채팅방 링크가 클립보드에 복사되었습니다.');
+                }).catch(err => {
+                    console.error('링크 복사 실패:', err);
+                });
+            }
+        }
+
+        function enterRoom() {
+            if (currentRoomUrl) {
+                window.location.href = currentRoomUrl;
+            }
         }
 
         // 입장하기 버튼 클릭 이벤트
@@ -347,16 +356,10 @@
                 window.location.href = `/chat.html?room=public&nickname=${encodeURIComponent(nickname)}`;
             } else if (selectedRoomType === 'temporary') {
                 const roomId = generateRoomId();
-                const roomUrl = `${window.location.origin}/chat.html?room=${roomId}&nickname=${encodeURIComponent(nickname)}`;
+                currentRoomUrl = `${window.location.origin}/chat.html?room=${roomId}&nickname=${encodeURIComponent(nickname)}`;
                 
-                // 링크 컨테이너에 URL 저장
-                document.querySelector('.link-container').setAttribute('data-url', roomUrl);
-
                 // 링크 컨테이너 표시
-                document.querySelector('.link-container').classList.add('active');
-                
-                // 채팅방으로 이동
-                window.location.href = roomUrl;
+                document.querySelector('.link-container').style.display = 'block';
             }
         });
 
