@@ -262,4 +262,7 @@ app.post('/ask-helper', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
     console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
+}).on('error', (err) => {
+    console.error('서버 시작 중 오류 발생:', err);
+    process.exit(1);
 });
