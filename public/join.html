@@ -135,7 +135,7 @@
                     
                     localStorage.setItem('chatUsername', username);
                     localStorage.setItem('chatRoom', roomId);
-                    window.location.href = '/chat.html';
+                    window.location.href = `/chat.html?room=${roomId}&nickname=${encodeURIComponent(username)}`;
                 })
                 .catch(error => {
                     showError(error.message);

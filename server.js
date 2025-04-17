@@ -1,10 +1,10 @@
 require('dotenv').config();
 
-// 환경 변수 체크
-if (!process.env.OPENAI_API_KEY) {
-    console.error('OPENAI_API_KEY 환경 변수가 설정되지 않았습니다.');
-    process.exit(1);
-}
+// 환경 변수 체크 (임시로 비활성화)
+// if (!process.env.OPENAI_API_KEY) {
+//     console.error('OPENAI_API_KEY 환경 변수가 설정되지 않았습니다.');
+//     process.exit(1);
+// }
 
 const express = require('express');
 const app = express();
@@ -19,12 +19,6 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const QRCode = require('qrcode');
-const OpenAI = require('openai');
-
-// OpenAI 설정
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
 
 // JSON 파싱 미들웨어
 app.use(express.json());
@@ -231,38 +225,6 @@ io.on('connection', (socket) => {
             }
         });
     });
-});
-
-// GPT 헬퍼 API 라우트
-app.post('/ask-helper', async (req, res) => {
-    try {
-        const { question } = req.body;
-        
-        const completion = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [
-                {
-                    role: "system",
-                    content: "너는 대학생 전용 웹앱에 내장된 AI 도우미야. 사용자 질문이 사이트 기능 관련이면 사이트 도움말을 제공하고, 일반 질문이면 친절한 AI처럼 답변해줘."
-                },
-                {
-                    role: "user",
-                    content: question
-                }
-            ],
-            temperature: 0.7,
-            max_tokens: 1000
-        });
-
-        res.json({ 
-            answer: completion.choices[0].message.content 
-        });
-    } catch (error) {
-        console.error('GPT API 오류:', error);
-        res.status(500).json({ 
-            error: '죄송합니다. 답변을 생성하는 중에 오류가 발생했습니다.' 
-        });
-    }
 });
 
 // 서버 시작
