@@ -6,7 +6,7 @@
     <title>Pseudonym - 방 선택</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a1a1a">
+    <meta name="theme-color" content="#4a90e2">
     <style>
         body {
             background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
@@ -285,31 +285,117 @@
     <div class="container">
         <h1>Pseudonym</h1>
         <div class="input-group">
-            <input type="text" id="nickname" placeholder="닉네임을 입력하세요" maxlength="10">
+            <label for="nickname">닉네임</label>
+            <input type="text" id="nickname" placeholder="닉네임을 입력하세요" maxlength="20">
         </div>
         <div class="room-options">
-            <button id="publicRoom" class="room-button">
-                <span class="room-icon">🌐</span>
-                <span class="room-name">공개방</span>
-                <span class="room-desc">모든 사용자와 대화</span>
-            </button>
-            <button id="privateRoom" class="room-button">
-                <span class="room-icon">🔒</span>
-                <span class="room-name">비밀방</span>
-                <span class="room-desc">초대된 사용자만 입장</span>
-            </button>
-            <button id="temporaryRoom" class="room-button">
-                <span class="room-icon">⏳</span>
-                <span class="room-name">임시방</span>
-                <span class="room-desc">3시간 후 자동 폭파</span>
-            </button>
+            <div class="room-option" data-type="public">
+                <h3>공개 채팅방</h3>
+                <p>모든 사용자와 대화할 수 있는 공개 채팅방입니다.</p>
+            </div>
+            <div class="room-option" data-type="private">
+                <h3>비밀 채팅방</h3>
+                <p>초대된 사용자만 참여할 수 있는 비밀 채팅방입니다.</p>
+            </div>
+            <div class="room-option" data-type="temporary">
+                <h3>임시 채팅방</h3>
+                <p>팀 프로젝트를 위한 임시 채팅방입니다.</p>
+            </div>
         </div>
-        <div id="qrContainer" class="qr-container" style="display: none;">
-            <div id="qrCode"></div>
-            <div class="timer">남은 시간: <span id="countdown">10</span>초</div>
+        <div class="link-container">
+            <h3>채팅방 초대 링크</h3>
+            <div class="link-actions">
+                <button onclick="copyRoomLink()">링크 복사</button>
+            </div>
+            <div class="countdown">10초 후 자동으로 채팅방으로 이동합니다...</div>
         </div>
+        <button class="button" id="enterButton" disabled>입장하기</button>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="script.js"></script>
+
+    <script>
+        let selectedRoomType = null;
+        let countdownInterval;
+
+        // 방 선택 이벤트
+        document.querySelectorAll('.room-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.room-option').forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedRoomType = option.dataset.type;
+                updateEnterButton();
+            });
+        });
+
+        // 닉네임 입력 이벤트
+        document.getElementById('nickname').addEventListener('input', updateEnterButton);
+
+        function updateEnterButton() {
+            const nickname = document.getElementById('nickname').value.trim();
+            const button = document.getElementById('enterButton');
+            button.disabled = !nickname || !selectedRoomType;
+        }
+
+        function copyRoomLink() {
+            const roomUrl = document.querySelector('.link-container').getAttribute('data-url');
+            navigator.clipboard.writeText(roomUrl).then(() => {
+                alert('채팅방 링크가 클립보드에 복사되었습니다.');
+            }).catch(err => {
+                console.error('링크 복사 실패:', err);
+            });
+        }
+
+        // 입장하기 버튼 클릭 이벤트
+        document.getElementById('enterButton').addEventListener('click', () => {
+            const nickname = document.getElementById('nickname').value.trim();
+            if (!nickname || !selectedRoomType) return;
+
+            if (selectedRoomType === 'public') {
+                window.location.href = `/chat.html?room=public&nickname=${encodeURIComponent(nickname)}`;
+            } else if (selectedRoomType === 'private') {
+                window.location.href = `/create.html?nickname=${encodeURIComponent(nickname)}`;
+            } else if (selectedRoomType === 'temporary') {
+                const roomId = generateRoomId();
+                const roomUrl = `${window.location.origin}/chat.html?room=${roomId}&nickname=${encodeURIComponent(nickname)}`;
+                
+                // 링크 컨테이너에 URL 저장
+                document.querySelector('.link-container').setAttribute('data-url', roomUrl);
+
+                // 링크 컨테이너 표시
+                document.querySelector('.link-container').classList.add('active');
+                
+                // 10초 카운트다운
+                let countdown = 10;
+                const countdownElement = document.querySelector('.countdown');
+                countdownInterval = setInterval(() => {
+                    countdown--;
+                    countdownElement.textContent = `${countdown}초 후 자동으로 채팅방으로 이동합니다...`;
+                    if (countdown <= 0) {
+                        clearInterval(countdownInterval);
+                        window.location.href = roomUrl;
+                    }
+                }, 1000);
+            }
+        });
+
+        function generateRoomId() {
+            return Math.random().toString(36).substring(2, 8);
+        }
+
+        // PWA 설치 프롬프트
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        // 서비스 워커 등록
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.log('Service Worker registration failed', err));
+            });
+        }
+    </script>
 </body>
 </html> 
