@@ -439,6 +439,8 @@
         sendButton.addEventListener('click', (e) => {
             e.preventDefault();
             sendMessage();
+            // input focus 제거하여 키보드가 사라지도록 함
+            document.getElementById('messageInput').blur();
         });
 
         // 이미지 첨부 버튼 클릭
