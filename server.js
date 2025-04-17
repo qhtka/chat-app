@@ -42,16 +42,13 @@ const upload = multer({
 });
 
 // 메시지 기록을 저장할 객체 (방별로 저장)
-const messageHistory = {
-    public: [],
-    private: []
-};
+const messageHistory = {};
 
 // 접속자 수 관리
-const userCount = {
-    public: 0,
-    private: 0
-};
+const userCount = {};
+
+// 서버 시작 시 공개방 채팅 기록 초기화
+messageHistory.public = [];
 
 // 매일 자정에 공개방 채팅 초기화
 function scheduleDailyReset() {
@@ -64,11 +61,7 @@ function scheduleDailyReset() {
     
     setTimeout(() => {
         messageHistory.public = [];
-        io.to('public').emit('chat message', {
-            type: 'system',
-            username: '시스템',
-            text: '공개방의 채팅이 초기화되었습니다.'
-        });
+        io.to('public').emit('system message', '공개방의 채팅이 초기화되었습니다.');
         scheduleDailyReset(); // 다음 자정을 위해 다시 설정
     }, timeUntilMidnight);
 }

@@ -101,7 +101,7 @@
             border-color: #4a90e2;
         }
 
-        .qr-container {
+        .link-container {
             display: none;
             text-align: center;
             margin-top: 2rem;
@@ -111,27 +111,18 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .qr-container.active {
+        .link-container.active {
             display: block;
         }
 
-        #qrCode {
-            max-width: 200px;
-            margin: 1rem auto;
-            background: white;
-            padding: 1rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .qr-actions {
+        .link-actions {
             margin-top: 1rem;
             display: flex;
             justify-content: center;
             gap: 1rem;
         }
 
-        .qr-actions button {
+        .link-actions button {
             padding: 0.5rem 1rem;
             border: none;
             border-radius: 8px;
@@ -141,7 +132,7 @@
             transition: background-color 0.2s;
         }
 
-        .qr-actions button:hover {
+        .link-actions button:hover {
             background: #0062cc;
         }
 
@@ -198,11 +189,9 @@
             </div>
         </div>
 
-        <div class="qr-container">
-            <h3>채팅방 초대 QR코드</h3>
-            <div id="qrCode"></div>
-            <div class="qr-actions">
-                <button onclick="saveQRCode()">QR 코드 저장</button>
+        <div class="link-container">
+            <h3>채팅방 초대 링크</h3>
+            <div class="link-actions">
                 <button onclick="copyRoomLink()">링크 복사</button>
             </div>
             <div class="countdown">10초 후 자동으로 채팅방으로 이동합니다...</div>
@@ -211,7 +200,6 @@
         <button class="button" id="enterButton" disabled>입장하기</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script>
         let selectedRoomType = null;
         let countdownInterval;
@@ -235,6 +223,15 @@
             button.disabled = !nickname || !selectedRoomType;
         }
 
+        function copyRoomLink() {
+            const roomUrl = document.querySelector('.link-container').getAttribute('data-url');
+            navigator.clipboard.writeText(roomUrl).then(() => {
+                alert('채팅방 링크가 클립보드에 복사되었습니다.');
+            }).catch(err => {
+                console.error('링크 복사 실패:', err);
+            });
+        }
+
         // 입장하기 버튼 클릭 이벤트
         document.getElementById('enterButton').addEventListener('click', () => {
             const nickname = document.getElementById('nickname').value.trim();
@@ -248,24 +245,11 @@
                 const roomId = generateRoomId();
                 const roomUrl = `${window.location.origin}/chat.html?room=${roomId}&nickname=${encodeURIComponent(nickname)}`;
                 
-                // QR 코드 생성
-                QRCode.toCanvas(document.getElementById('qrCode'), roomUrl, {
-                    width: 200,
-                    margin: 2,
-                    color: {
-                        dark: '#007aff',
-                        light: '#ffffff'
-                    }
-                }, function (error) {
-                    if (error) console.error(error);
-                    console.log('QR 코드 생성 완료');
-                });
+                // 링크 컨테이너에 URL 저장
+                document.querySelector('.link-container').setAttribute('data-url', roomUrl);
 
-                // QR 코드 컨테이너에 URL 저장
-                document.querySelector('#qrCode').setAttribute('data-url', roomUrl);
-
-                // QR 코드 컨테이너 표시
-                document.querySelector('.qr-container').classList.add('active');
+                // 링크 컨테이너 표시
+                document.querySelector('.link-container').classList.add('active');
                 
                 // 10초 카운트다운
                 let countdown = 10;
@@ -283,23 +267,6 @@
 
         function generateRoomId() {
             return Math.random().toString(36).substring(2, 8);
-        }
-
-        function saveQRCode() {
-            const canvas = document.querySelector('#qrCode canvas');
-            const link = document.createElement('a');
-            link.download = 'chat-room-qr.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }
-
-        function copyRoomLink() {
-            const roomUrl = document.querySelector('#qrCode').getAttribute('data-url');
-            navigator.clipboard.writeText(roomUrl).then(() => {
-                alert('채팅방 링크가 클립보드에 복사되었습니다.');
-            }).catch(err => {
-                console.error('링크 복사 실패:', err);
-            });
         }
 
         // PWA 설치 프롬프트
