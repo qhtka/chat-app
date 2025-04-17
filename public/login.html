@@ -163,6 +163,122 @@
             background: #666;
             cursor: not-allowed;
         }
+
+        .helper-button {
+            margin-top: 1rem;
+            background-color: #34c759 !important;
+        }
+        
+        .helper-button:hover {
+            background-color: #2da84e !important;
+        }
+
+        .helper-container {
+            padding: 1rem;
+        }
+
+        .question-input {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .question-input textarea {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #333;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .question-input button {
+            padding: 0.8rem 1.2rem;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .answer-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .qa-item {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .question {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #007aff;
+        }
+
+        .answer {
+            white-space: pre-wrap;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 1rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -198,6 +314,26 @@
         </div>
 
         <button class="button" id="enterButton" disabled>입장하기</button>
+        <button class="button helper-button" id="helperButton">헬퍼AI에게 물어보기</button>
+    </div>
+
+    <!-- 헬퍼AI 모달 -->
+    <div class="modal" id="helperModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>헬퍼AI에게 물어보기</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="helper-container">
+                <div class="question-input">
+                    <textarea id="questionInput" placeholder="질문을 입력하세요..." rows="3"></textarea>
+                    <button id="askButton">질문하기</button>
+                </div>
+                <div class="answer-container" id="answerContainer">
+                    <!-- 답변이 여기에 표시됩니다 -->
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -284,6 +420,75 @@
                     .catch(err => console.log('Service Worker registration failed', err));
             });
         }
+
+        // 헬퍼AI 관련 코드
+        const helperButton = document.getElementById('helperButton');
+        const helperModal = document.getElementById('helperModal');
+        const questionInput = document.getElementById('questionInput');
+        const askButton = document.getElementById('askButton');
+        const answerContainer = document.getElementById('answerContainer');
+        const modalClose = helperModal.querySelector('.modal-close');
+
+        helperButton.addEventListener('click', () => {
+            helperModal.style.display = 'flex';
+        });
+
+        modalClose.addEventListener('click', () => {
+            helperModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === helperModal) {
+                helperModal.style.display = 'none';
+            }
+        });
+
+        askButton.addEventListener('click', async () => {
+            const question = questionInput.value.trim();
+            if (!question) return;
+
+            // 새로운 QA 아이템 생성
+            const qaItem = document.createElement('div');
+            qaItem.className = 'qa-item';
+            qaItem.innerHTML = `
+                <div class="question">Q: ${question}</div>
+                <div class="answer loading">답변을 생성하는 중입니다...</div>
+            `;
+            answerContainer.insertBefore(qaItem, answerContainer.firstChild);
+
+            try {
+                const response = await fetch('/ask-helper', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    qaItem.querySelector('.answer').textContent = data.error;
+                    qaItem.querySelector('.answer').classList.add('error');
+                } else {
+                    qaItem.querySelector('.answer').textContent = data.answer;
+                }
+            } catch (error) {
+                qaItem.querySelector('.answer').textContent = '오류가 발생했습니다. 다시 시도해주세요.';
+                qaItem.querySelector('.answer').classList.add('error');
+            }
+
+            qaItem.querySelector('.answer').classList.remove('loading');
+            questionInput.value = '';
+        });
+
+        // Enter 키로 질문 제출 (Shift + Enter는 줄바꿈)
+        questionInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                askButton.click();
+            }
+        });
     </script>
 </body>
 </html> 
