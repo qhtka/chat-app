@@ -105,9 +105,10 @@
             display: none;
             text-align: center;
             margin-top: 2rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .qr-container.active {
@@ -117,11 +118,36 @@
         #qrCode {
             max-width: 200px;
             margin: 1rem auto;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-actions {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .qr-actions button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background: #007aff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .qr-actions button:hover {
+            background: #0062cc;
         }
 
         .countdown {
             font-size: 1.2rem;
-            color: #4a90e2;
+            color: #007aff;
             margin-top: 1rem;
         }
 
@@ -175,6 +201,10 @@
         <div class="qr-container">
             <h3>채팅방 초대 QR코드</h3>
             <div id="qrCode"></div>
+            <div class="qr-actions">
+                <button onclick="saveQRCode()">QR 코드 저장</button>
+                <button onclick="copyRoomLink()">링크 복사</button>
+            </div>
             <div class="countdown">10초 후 자동으로 채팅방으로 이동합니다...</div>
         </div>
 
@@ -226,7 +256,13 @@
                         dark: '#007aff',
                         light: '#ffffff'
                     }
+                }, function (error) {
+                    if (error) console.error(error);
+                    console.log('QR 코드 생성 완료');
                 });
+
+                // QR 코드 컨테이너에 URL 저장
+                document.querySelector('#qrCode').setAttribute('data-url', roomUrl);
 
                 // QR 코드 컨테이너 표시
                 document.querySelector('.qr-container').classList.add('active');
@@ -247,6 +283,23 @@
 
         function generateRoomId() {
             return Math.random().toString(36).substring(2, 8);
+        }
+
+        function saveQRCode() {
+            const canvas = document.querySelector('#qrCode canvas');
+            const link = document.createElement('a');
+            link.download = 'chat-room-qr.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function copyRoomLink() {
+            const roomUrl = document.querySelector('#qrCode').getAttribute('data-url');
+            navigator.clipboard.writeText(roomUrl).then(() => {
+                alert('채팅방 링크가 클립보드에 복사되었습니다.');
+            }).catch(err => {
+                console.error('링크 복사 실패:', err);
+            });
         }
 
         // PWA 설치 프롬프트
