@@ -293,10 +293,6 @@
                 <h3>공개 채팅방</h3>
                 <p>모든 사용자와 대화할 수 있는 공개 채팅방입니다.</p>
             </div>
-            <div class="room-option" data-type="private">
-                <h3>비밀 채팅방</h3>
-                <p>초대된 사용자만 참여할 수 있는 비밀 채팅방입니다.</p>
-            </div>
             <div class="room-option" data-type="temporary">
                 <h3>임시 채팅방</h3>
                 <p>팀 프로젝트를 위한 임시 채팅방입니다.</p>
@@ -307,14 +303,12 @@
             <div class="link-actions">
                 <button onclick="copyRoomLink()">링크 복사</button>
             </div>
-            <div class="countdown">10초 후 자동으로 채팅방으로 이동합니다...</div>
         </div>
         <button class="button" id="enterButton" disabled>입장하기</button>
     </div>
 
     <script>
         let selectedRoomType = null;
-        let countdownInterval;
 
         // 방 선택 이벤트
         document.querySelectorAll('.room-option').forEach(option => {
@@ -351,8 +345,6 @@
 
             if (selectedRoomType === 'public') {
                 window.location.href = `/chat.html?room=public&nickname=${encodeURIComponent(nickname)}`;
-            } else if (selectedRoomType === 'private') {
-                window.location.href = `/create.html?nickname=${encodeURIComponent(nickname)}`;
             } else if (selectedRoomType === 'temporary') {
                 const roomId = generateRoomId();
                 const roomUrl = `${window.location.origin}/chat.html?room=${roomId}&nickname=${encodeURIComponent(nickname)}`;
@@ -363,17 +355,8 @@
                 // 링크 컨테이너 표시
                 document.querySelector('.link-container').classList.add('active');
                 
-                // 10초 카운트다운
-                let countdown = 10;
-                const countdownElement = document.querySelector('.countdown');
-                countdownInterval = setInterval(() => {
-                    countdown--;
-                    countdownElement.textContent = `${countdown}초 후 자동으로 채팅방으로 이동합니다...`;
-                    if (countdown <= 0) {
-                        clearInterval(countdownInterval);
-                        window.location.href = roomUrl;
-                    }
-                }, 1000);
+                // 채팅방으로 이동
+                window.location.href = roomUrl;
             }
         });
 
