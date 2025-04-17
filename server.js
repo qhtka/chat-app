@@ -10,6 +10,7 @@ const io = require('socket.io')(http, {
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const QRCode = require('qrcode');
 
 // 이미지 저장 설정
 const storage = multer.diskStorage({
@@ -100,6 +101,55 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
 });
 
+// 방 정보 저장
+const rooms = new Map();
+
+// QR 코드 생성
+app.post('/generate-qr', async (req, res) => {
+    const { roomId } = req.body;
+    try {
+        const url = `http://${req.headers.host}/join.html?room=${roomId}`;
+        const qrCode = await QRCode.toDataURL(url);
+        res.json({ qrCode });
+    } catch (error) {
+        res.status(500).json({ error: 'QR 코드 생성 실패' });
+    }
+});
+
+// 방 생성
+app.post('/create-room', (req, res) => {
+    const roomId = Math.random().toString(36).substring(2, 8);
+    const room = {
+        id: roomId,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + (3 * 60 * 60 * 1000), // 3시간 후
+        users: new Set()
+    };
+    rooms.set(roomId, room);
+    
+    // 3시간 후 방 자동 폭파
+    setTimeout(() => {
+        if (rooms.has(roomId)) {
+            const room = rooms.get(roomId);
+            room.users.forEach(user => {
+                io.to(user).emit('room expired');
+            });
+            rooms.delete(roomId);
+        }
+    }, 3 * 60 * 60 * 1000);
+    
+    res.json({ roomId });
+});
+
+// 방 정보 조회
+app.get('/room/:roomId', (req, res) => {
+    const room = rooms.get(req.params.roomId);
+    if (!room) {
+        return res.status(404).json({ error: '방을 찾을 수 없습니다' });
+    }
+    res.json(room);
+});
+
 // 소켓 연결 처리
 io.on('connection', (socket) => {
     console.log('a user connected');
@@ -107,53 +157,57 @@ io.on('connection', (socket) => {
     // 새로운 연결 시 현재 접속자 수 전송
     socket.emit('initial user count', userCount);
 
-    socket.on('join room', (data) => {
-        const { room, username } = data;
-        socket.join(room);
-        userCount[room]++;
+    socket.on('join', (data) => {
+        const { username, roomId } = data;
+        const room = rooms.get(roomId);
         
-        // 모든 클라이언트에게 접속자 수 업데이트
-        io.emit('user count update', userCount);
+        if (!room) {
+            socket.emit('error', '방을 찾을 수 없습니다');
+            return;
+        }
         
-        // 이전 메시지 기록 전송
-        socket.emit('message history', messageHistory[room]);
+        if (room.expiresAt < Date.now()) {
+            socket.emit('error', '방이 만료되었습니다');
+            return;
+        }
         
-        // 시스템 메시지 전송
-        io.to(room).emit('chat message', {
-            type: 'system',
-            username: '시스템',
-            text: `${username}님이 입장하셨습니다.`
+        socket.join(roomId);
+        room.users.add(socket.id);
+        
+        io.to(roomId).emit('user joined', {
+            username,
+            userCount: room.users.size
         });
     });
 
     socket.on('chat message', (data) => {
-        const { room, username, message, image } = data;
-        const now = new Date();
-        const hours = now.getHours().toString().padStart(2, '0');
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const time = `${hours}:${minutes}`;
+        const { text, username, roomId } = data;
+        const room = rooms.get(roomId);
         
-        const messageData = {
-            type: 'message',
+        if (!room || room.expiresAt < Date.now()) {
+            socket.emit('error', '방이 만료되었습니다');
+            return;
+        }
+        
+        io.to(roomId).emit('chat message', {
+            text,
             username,
-            text: message,
-            image,
-            time: time
-        };
-        
-        messageHistory[room].push(messageData);
-        io.to(room).emit('chat message', messageData);
+            time: new Date().toLocaleTimeString()
+        });
     });
 
     socket.on('disconnect', () => {
         console.log('user disconnected');
-        // 방에서 나갈 때 접속자 수 감소
-        const rooms = Array.from(socket.rooms);
-        rooms.forEach(room => {
-            if (room === 'public' || room === 'private') {
-                userCount[room]--;
-                // 모든 클라이언트에게 접속자 수 업데이트
-                io.emit('user count update', userCount);
+        rooms.forEach((room, roomId) => {
+            if (room.users.has(socket.id)) {
+                room.users.delete(socket.id);
+                io.to(roomId).emit('user left', {
+                    userCount: room.users.size
+                });
+                
+                if (room.users.size === 0) {
+                    rooms.delete(roomId);
+                }
             }
         });
     });

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pseudonym - 방 생성</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1rem;
+            color: #aaa;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4a90e2;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #357abd;
+            transform: translateY(-2px);
+        }
+
+        .qr-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .qr-code {
+            max-width: 200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+        }
+
+        .room-info {
+            margin-top: 20px;
+            text-align: center;
+            color: #aaa;
+        }
+
+        .timer {
+            font-size: 1.2rem;
+            color: #4a90e2;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pseudonym</h1>
+        <div class="form-group">
+            <label for="username">닉네임</label>
+            <input type="text" id="username" placeholder="닉네임을 입력하세요" required>
+        </div>
+        <button onclick="createRoom()">방 생성하기</button>
+        
+        <div class="qr-container" id="qr-container" style="display: none;">
+            <h2>QR 코드로 초대하기</h2>
+            <img id="qr-code" class="qr-code" alt="QR Code">
+            <div class="room-info">
+                <p>방이 3시간 후 자동으로 삭제됩니다.</p>
+                <div class="timer" id="timer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let roomId = null;
+        let timerInterval = null;
+
+        function createRoom() {
+            const username = document.getElementById('username').value.trim();
+            if (!username) {
+                alert('닉네임을 입력해주세요');
+                return;
+            }
+
+            fetch('/create-room', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                roomId = data.roomId;
+                localStorage.setItem('chatUsername', username);
+                localStorage.setItem('chatRoom', roomId);
+                
+                // QR 코드 생성
+                fetch('/generate-qr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ roomId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('qr-code').src = data.qrCode;
+                    document.getElementById('qr-container').style.display = 'block';
+                    startTimer();
+                });
+            });
+        }
+
+        function startTimer() {
+            const timer = document.getElementById('timer');
+            const endTime = Date.now() + (3 * 60 * 60 * 1000); // 3시간
+
+            function updateTimer() {
+                const now = Date.now();
+                const remaining = endTime - now;
+
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    timer.textContent = '방이 만료되었습니다';
+                    return;
+                }
+
+                const hours = Math.floor(remaining / (60 * 60 * 1000));
+                const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+
+                timer.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+    </script>
+</body>
+</html> 
