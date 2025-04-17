@@ -157,57 +157,56 @@ io.on('connection', (socket) => {
     // 새로운 연결 시 현재 접속자 수 전송
     socket.emit('initial user count', userCount);
 
-    socket.on('join', (data) => {
-        const { username, roomId } = data;
-        const room = rooms.get(roomId);
+    socket.on('join room', (data) => {
+        const { room, nickname } = data;
         
-        if (!room) {
-            socket.emit('error', '방을 찾을 수 없습니다');
-            return;
+        // 방에 입장
+        socket.join(room);
+        
+        // 사용자 수 증가
+        userCount[room] = (userCount[room] || 0) + 1;
+        
+        // 모든 클라이언트에게 사용자 수 업데이트
+        io.emit('user count', userCount[room]);
+        
+        // 시스템 메시지 전송
+        io.to(room).emit('system message', `${nickname}님이 입장하셨습니다.`);
+        
+        // 이전 메시지 기록 전송
+        if (messageHistory[room]) {
+            socket.emit('message history', messageHistory[room]);
         }
-        
-        if (room.expiresAt < Date.now()) {
-            socket.emit('error', '방이 만료되었습니다');
-            return;
-        }
-        
-        socket.join(roomId);
-        room.users.add(socket.id);
-        
-        io.to(roomId).emit('user joined', {
-            username,
-            userCount: room.users.size
-        });
     });
 
     socket.on('chat message', (data) => {
-        const { text, username, roomId } = data;
-        const room = rooms.get(roomId);
+        const { room, message, nickname } = data;
+        const timestamp = new Date();
         
-        if (!room || room.expiresAt < Date.now()) {
-            socket.emit('error', '방이 만료되었습니다');
-            return;
+        // 메시지 기록에 추가
+        if (!messageHistory[room]) {
+            messageHistory[room] = [];
         }
+        messageHistory[room].push({
+            message,
+            nickname,
+            timestamp
+        });
         
-        io.to(roomId).emit('chat message', {
-            text,
-            username,
-            time: new Date().toLocaleTimeString()
+        // 방의 모든 클라이언트에게 메시지 전송
+        io.to(room).emit('chat message', {
+            message,
+            nickname,
+            timestamp
         });
     });
 
     socket.on('disconnect', () => {
         console.log('user disconnected');
-        rooms.forEach((room, roomId) => {
-            if (room.users.has(socket.id)) {
-                room.users.delete(socket.id);
-                io.to(roomId).emit('user left', {
-                    userCount: room.users.size
-                });
-                
-                if (room.users.size === 0) {
-                    rooms.delete(roomId);
-                }
+        // 모든 방에서 사용자 수 감소
+        Object.keys(userCount).forEach(room => {
+            if (userCount[room] > 0) {
+                userCount[room]--;
+                io.emit('user count', userCount[room]);
             }
         });
     });
