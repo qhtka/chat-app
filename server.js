@@ -20,7 +20,6 @@ const path = require('path');
 const fs = require('fs');
 const QRCode = require('qrcode');
 const OpenAI = require('openai');
-const quizQuestions = require('./quiz-questions.json');
 
 // OpenAI 설정
 const openai = new OpenAI({
@@ -255,97 +254,19 @@ app.post('/ask-helper', async (req, res) => {
             max_tokens: 1000
         });
 
-        if (!completion.choices || !completion.choices[0] || !completion.choices[0].message) {
-            throw new Error('AI 응답 생성 실패');
-        }
-
         res.json({ 
             answer: completion.choices[0].message.content 
         });
     } catch (error) {
         console.error('GPT API 오류:', error);
         res.status(500).json({ 
-            error: '죄송합니다. 답변을 생성하는 중에 오류가 발생했습니다. 다시 시도해주세요.' 
+            error: '죄송합니다. 답변을 생성하는 중에 오류가 발생했습니다.' 
         });
     }
-});
-
-// 퀴즈 관련 변수 초기화
-const userPoints = new Map();
-const leaderboard = [];
-
-// 매일 자정에 리더보드 업데이트 및 보너스 지급
-function scheduleDailyReset() {
-    const now = new Date();
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    
-    const timeUntilMidnight = tomorrow - now;
-    
-    setTimeout(() => {
-        // 리더보드 정렬
-        leaderboard.sort((a, b) => b.points - a.points);
-        
-        // 1등에게 보너스 포인트 지급
-        if (leaderboard.length > 0) {
-            const topUser = leaderboard[0];
-            topUser.points += 50;
-            userPoints.set(topUser.nickname, topUser.points);
-        }
-        
-        scheduleDailyReset(); // 다음 자정을 위해 다시 설정
-    }, timeUntilMidnight);
-}
-
-// 자정 초기화 스케줄링 시작
-scheduleDailyReset();
-
-// 퀴즈 생성 API
-app.post('/generate-quiz', (req, res) => {
-    const randomIndex = Math.floor(Math.random() * quizQuestions.length);
-    const question = quizQuestions[randomIndex];
-    res.json(question);
-});
-
-// 답변 확인 API
-app.post('/check-answer', (req, res) => {
-    const { questionId, answer, nickname } = req.body;
-    const question = quizQuestions.find(q => q.id === questionId);
-    
-    if (!question) {
-        return res.status(404).json({ error: '문제를 찾을 수 없습니다.' });
-    }
-    
-    const correct = parseInt(answer) === question.correctAnswer;
-    
-    if (correct) {
-        // 포인트 업데이트
-        const currentPoints = userPoints.get(nickname) || 0;
-        userPoints.set(nickname, currentPoints + 10);
-        
-        // 리더보드 업데이트
-        const userIndex = leaderboard.findIndex(u => u.nickname === nickname);
-        if (userIndex === -1) {
-            leaderboard.push({ nickname, points: currentPoints + 10 });
-        } else {
-            leaderboard[userIndex].points = currentPoints + 10;
-        }
-    }
-    
-    res.json({ correct });
-});
-
-// 리더보드 API
-app.get('/leaderboard', (req, res) => {
-    res.json(leaderboard.sort((a, b) => b.points - a.points));
 });
 
 // 서버 시작
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
     console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
-}).on('error', (err) => {
-    console.error('서버 시작 중 오류 발생:', err);
-    process.exit(1);
 });
