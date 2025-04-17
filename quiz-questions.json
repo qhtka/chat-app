@@ -1,0 +1,57 @@
+[
+    {
+        "id": "1",
+        "question": "함수 f(x) = x²의 x=2에서의 미분계수는?",
+        "options": [
+            "2",
+            "4",
+            "6",
+            "8"
+        ],
+        "correctAnswer": 1
+    },
+    {
+        "id": "2",
+        "question": "다음 중 부정적분 ∫(2x + 3)dx의 결과는?",
+        "options": [
+            "x² + 3x + C",
+            "2x² + 3x + C",
+            "x² + 3 + C",
+            "2x + 3 + C"
+        ],
+        "correctAnswer": 0
+    },
+    {
+        "id": "3",
+        "question": "함수 f(x) = sin(x)의 도함수는?",
+        "options": [
+            "cos(x)",
+            "-cos(x)",
+            "sin(x)",
+            "-sin(x)"
+        ],
+        "correctAnswer": 0
+    },
+    {
+        "id": "4",
+        "question": "다음 중 정적분 ∫₀¹ x² dx의 값은?",
+        "options": [
+            "1/2",
+            "1/3",
+            "1/4",
+            "1/5"
+        ],
+        "correctAnswer": 1
+    },
+    {
+        "id": "5",
+        "question": "함수 f(x) = eˣ의 도함수는?",
+        "options": [
+            "eˣ",
+            "xeˣ",
+            "eˣ/x",
+            "ln(x)"
+        ],
+        "correctAnswer": 0
+    }
+] 
