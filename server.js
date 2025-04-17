@@ -172,25 +172,36 @@ io.on('connection', (socket) => {
     });
 
     socket.on('chat message', (data) => {
-        const { room, message, nickname } = data;
+        const { room, message, nickname, fileData, noteData } = data;
         const timestamp = new Date();
         
         // 메시지 기록에 추가
         if (!messageHistory[room]) {
             messageHistory[room] = [];
         }
-        messageHistory[room].push({
-            message,
+        
+        // 파일 또는 노트 데이터가 있는 경우 포함
+        const messageData = {
             nickname,
             timestamp
-        });
+        };
+        
+        if (fileData) {
+            messageData.fileData = fileData;
+        } else if (noteData) {
+            messageData.message = message;
+            messageData.noteData = noteData;
+        } else {
+            messageData.message = message;
+        }
+        
+        // 큰 파일 데이터는 메시지 히스토리에 저장하지 않음
+        if (!fileData) {
+            messageHistory[room].push(messageData);
+        }
         
         // 방의 모든 클라이언트에게 메시지 전송
-        io.to(room).emit('chat message', {
-            message,
-            nickname,
-            timestamp
-        });
+        io.to(room).emit('chat message', messageData);
     });
 
     socket.on('disconnect', () => {

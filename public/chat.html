@@ -42,6 +42,28 @@
             font-size: 0.9rem;
         }
 
+        .toolbar {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: #f2f2f7;
+            border-bottom: 1px solid #e5e5ea;
+        }
+
+        .toolbar button {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .toolbar button:hover {
+            background-color: #0062cc;
+        }
+
         .chat-container {
             flex: 1;
             overflow-y: auto;
@@ -91,6 +113,61 @@
 
         .message.received .time {
             color: #8e8e93;
+        }
+
+        .message img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            cursor: pointer;
+        }
+
+        .message .file-attachment {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .message.received .file-attachment {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .message .file-icon {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .message .file-info {
+            flex: 1;
+        }
+
+        .message .file-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .message .file-size {
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+
+        .message .download-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            padding: 0.3rem 0.5rem;
+            border-radius: 0.3rem;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        .message.received .download-btn {
+            border-color: rgba(0, 0, 0, 0.3);
+            color: #333;
         }
 
         .input-container {
@@ -154,6 +231,100 @@
             font-size: 0.9rem;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #8e8e93;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 60vh;
+            margin: 0 auto;
+            display: block;
+        }
+
+        /* 메모 노트 스타일 */
+        .note-container {
+            padding: 1rem;
+        }
+
+        .note-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            border: 1px solid #e5e5ea;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+
+        .note-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        .note-actions button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            background-color: #007aff;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .note-actions button.share-note {
+            background-color: #34c759;
+        }
+
+        /* 파일 입력 숨김 */
+        #fileInput {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -162,10 +333,50 @@
         <div class="room-info" id="roomInfo"></div>
     </div>
     <div class="user-count" id="userCount">0명</div>
+
+    <!-- 팀 프로젝트 도구 막대 -->
+    <div class="toolbar" id="projectToolbar">
+        <button id="attachImageBtn">이미지 공유</button>
+        <button id="attachFileBtn">파일 공유</button>
+        <button id="noteBtn">회의록</button>
+    </div>
+
     <div class="chat-container" id="chatContainer"></div>
+    
     <div class="input-container">
         <input type="text" id="messageInput" placeholder="메시지를 입력하세요..." maxlength="500">
         <button id="sendButton" disabled>전송</button>
+    </div>
+
+    <!-- 이미지/파일 입력 -->
+    <input type="file" id="fileInput" accept="*/*">
+
+    <!-- 이미지 미리보기 모달 -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>이미지 미리보기</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <img class="image-preview" id="imagePreview" src="" alt="이미지 미리보기">
+        </div>
+    </div>
+
+    <!-- 회의록 메모 모달 -->
+    <div class="modal" id="noteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>회의록 메모</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="note-container">
+                <textarea class="note-textarea" id="noteTextarea" placeholder="회의 내용을 기록하세요..."></textarea>
+                <div class="note-actions">
+                    <button class="save-note" id="saveNoteBtn">저장</button>
+                    <button class="share-note" id="shareNoteBtn">공유</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -180,11 +391,30 @@
         const userCount = document.getElementById('userCount');
         const roomName = document.getElementById('roomName');
         const roomInfo = document.getElementById('roomInfo');
+        const fileInput = document.getElementById('fileInput');
+        const attachImageBtn = document.getElementById('attachImageBtn');
+        const attachFileBtn = document.getElementById('attachFileBtn');
+        const noteBtn = document.getElementById('noteBtn');
+        const imageModal = document.getElementById('imageModal');
+        const imagePreview = document.getElementById('imagePreview');
+        const noteModal = document.getElementById('noteModal');
+        const noteTextarea = document.getElementById('noteTextarea');
+        const saveNoteBtn = document.getElementById('saveNoteBtn');
+        const shareNoteBtn = document.getElementById('shareNoteBtn');
+
+        // 임시방 여부 확인
+        const isTemporaryRoom = room !== 'public' && room !== 'private';
+
+        // 툴바 표시 여부 설정 (임시 채팅방에만 표시)
+        document.getElementById('projectToolbar').style.display = isTemporaryRoom ? 'flex' : 'none';
 
         // 방 정보 설정
         if (room === 'public') {
             roomName.textContent = '공개 채팅방';
             roomInfo.textContent = '매일 자정에 초기화됩니다';
+        } else if (isTemporaryRoom) {
+            roomName.textContent = '팀 프로젝트 채팅방';
+            roomInfo.textContent = '파일 및 메모 공유 가능';
         } else {
             roomName.textContent = '채팅방';
         }
@@ -211,6 +441,96 @@
             sendMessage();
         });
 
+        // 이미지 첨부 버튼 클릭
+        attachImageBtn.addEventListener('click', () => {
+            fileInput.setAttribute('accept', 'image/*');
+            fileInput.click();
+        });
+
+        // 파일 첨부 버튼 클릭
+        attachFileBtn.addEventListener('click', () => {
+            fileInput.setAttribute('accept', '*/*');
+            fileInput.click();
+        });
+
+        // 파일 선택 시
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const isImage = file.type.startsWith('image/');
+            
+            // 파일을 Base64로 인코딩
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const fileData = {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    data: event.target.result,
+                    isImage: isImage
+                };
+
+                // 소켓으로 파일 데이터 전송
+                socket.emit('chat message', {
+                    room,
+                    nickname,
+                    fileData
+                });
+            };
+            reader.readAsDataURL(file);
+            
+            // 파일 입력 초기화
+            fileInput.value = '';
+        });
+
+        // 회의록 버튼 클릭
+        noteBtn.addEventListener('click', () => {
+            // 저장된 회의록 불러오기
+            const savedNote = localStorage.getItem(`note_${room}`) || '';
+            noteTextarea.value = savedNote;
+            noteModal.style.display = 'flex';
+        });
+
+        // 회의록 저장
+        saveNoteBtn.addEventListener('click', () => {
+            const noteText = noteTextarea.value;
+            localStorage.setItem(`note_${room}`, noteText);
+            alert('회의록이 저장되었습니다.');
+        });
+
+        // 회의록 공유
+        shareNoteBtn.addEventListener('click', () => {
+            const noteText = noteTextarea.value;
+            if (!noteText.trim()) {
+                alert('공유할 회의록 내용이 없습니다.');
+                return;
+            }
+
+            socket.emit('chat message', {
+                room,
+                nickname,
+                message: '📝 회의록 공유',
+                noteData: noteText
+            });
+
+            noteModal.style.display = 'none';
+        });
+
+        // 모달 닫기 버튼
+        document.querySelectorAll('.modal-close').forEach(button => {
+            button.addEventListener('click', () => {
+                imageModal.style.display = 'none';
+                noteModal.style.display = 'none';
+            });
+        });
+
+        // 모달 외부 클릭 시 닫기
+        window.addEventListener('click', (e) => {
+            if (e.target === imageModal) imageModal.style.display = 'none';
+            if (e.target === noteModal) noteModal.style.display = 'none';
+        });
+
         function sendMessage() {
             const message = messageInput.value.trim();
             if (message) {
@@ -228,7 +548,13 @@
 
         // 메시지 수신
         socket.on('chat message', (data) => {
-            appendMessage(data.message, data.nickname, data.timestamp, data.nickname === nickname);
+            if (data.fileData) {
+                appendFileMessage(data.fileData, data.nickname, data.timestamp, data.nickname === nickname);
+            } else if (data.noteData) {
+                appendNoteMessage(data.message, data.noteData, data.nickname, data.timestamp, data.nickname === nickname);
+            } else {
+                appendMessage(data.message, data.nickname, data.timestamp, data.nickname === nickname);
+            }
         });
 
         // 시스템 메시지
@@ -260,6 +586,74 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        function appendFileMessage(fileData, sender, timestamp, isSent) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            
+            const time = new Date(timestamp).toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            // 파일 크기 포맷팅
+            const formatFileSize = (bytes) => {
+                if (bytes < 1024) return bytes + ' B';
+                else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                else return (bytes / 1048576).toFixed(1) + ' MB';
+            };
+
+            let fileContent = '';
+            if (fileData.isImage) {
+                fileContent = `<img src="${fileData.data}" alt="${fileData.name}" onclick="showImagePreview('${fileData.data}')">`;
+            } else {
+                fileContent = `
+                    <div class="file-attachment">
+                        <div class="file-icon">📎</div>
+                        <div class="file-info">
+                            <div class="file-name">${fileData.name}</div>
+                            <div class="file-size">${formatFileSize(fileData.size)}</div>
+                        </div>
+                        <button class="download-btn" onclick="downloadFile('${fileData.data}', '${fileData.name}')">다운로드</button>
+                    </div>
+                `;
+            }
+
+            messageDiv.innerHTML = `
+                ${!isSent ? `<div class="sender">${sender}</div>` : ''}
+                ${fileContent}
+                <div class="time">${time}</div>
+            `;
+
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function appendNoteMessage(title, noteData, sender, timestamp, isSent) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            
+            const time = new Date(timestamp).toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const formattedNote = noteData.replace(/\n/g, '<br>');
+
+            messageDiv.innerHTML = `
+                ${!isSent ? `<div class="sender">${sender}</div>` : ''}
+                <div class="content">
+                    <strong>${title}</strong><br>
+                    <div style="background: rgba(255,255,255,0.2); padding: 8px; border-radius: 8px; margin-top: 8px;">
+                        ${formattedNote}
+                    </div>
+                </div>
+                <div class="time">${time}</div>
+            `;
+
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
         function appendSystemMessage(message) {
             const systemDiv = document.createElement('div');
             systemDiv.className = 'system-message';
@@ -267,6 +661,22 @@
             chatContainer.appendChild(systemDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
+
+        // 이미지 미리보기 표시
+        window.showImagePreview = (dataUrl) => {
+            imagePreview.src = dataUrl;
+            imageModal.style.display = 'flex';
+        };
+
+        // 파일 다운로드
+        window.downloadFile = (dataUrl, fileName) => {
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
 
         // 페이지 새로고침 시 스크롤 위치 유지
         window.addEventListener('beforeunload', () => {
@@ -278,6 +688,11 @@
             if (savedPosition) {
                 chatContainer.scrollTop = savedPosition;
                 localStorage.removeItem('chatScrollPosition');
+            }
+
+            // 임시 채팅방이 아니면 프로젝트 툴바 숨김
+            if (!isTemporaryRoom) {
+                document.getElementById('projectToolbar').style.display = 'none';
             }
         });
     </script>
