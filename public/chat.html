@@ -3,457 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pseudonym - 채팅</title>
-    <script src="/socket.io/socket.io.js"></script>
+    <title>Pseudonym - 채팅방</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a90e2">
     <style>
-        * {
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-            color: #fff;
+            background-color: #f2f2f7;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
         .header {
+            background-color: #ffffff;
+            padding: 1rem;
+            border-bottom: 1px solid #e5e5ea;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .header h1 {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: #fff;
-        }
-
-        .room-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .room-name {
+        .header h2 {
+            margin: 0;
+            color: #000;
             font-size: 1.2rem;
-            color: #fff;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 15px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-weight: 600;
         }
 
-        .user-count {
+        .header .room-info {
+            color: #8e8e93;
             font-size: 0.9rem;
-            color: #aaa;
         }
 
         .chat-container {
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            overflow: hidden;
-        }
-
-        .messages {
-            flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 0.5rem;
         }
 
         .message {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            max-width: 80%;
-            margin-bottom: 15px;
+            max-width: 70%;
+            padding: 0.8rem 1rem;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            word-wrap: break-word;
         }
 
         .message.sent {
+            background-color: #007aff;
+            color: white;
             align-self: flex-end;
-            align-items: flex-end;
+            border-bottom-right-radius: 0;
         }
 
         .message.received {
+            background-color: #e5e5ea;
+            color: black;
             align-self: flex-start;
-            align-items: flex-start;
+            border-bottom-left-radius: 0;
         }
 
-        .message-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            color: #aaa;
-        }
-
-        .message-content {
-            padding: 12px 16px;
-            border-radius: 15px;
-            font-size: 1rem;
-            line-height: 1.5;
-            word-break: break-word;
-            max-width: 100%;
-        }
-
-        .message.sent .message-content {
-            background: #4a90e2;
-            color: #fff;
-            border-bottom-right-radius: 5px;
-        }
-
-        .message.received .message-content {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border-bottom-left-radius: 5px;
-        }
-
-        .message-time {
+        .message .sender {
             font-size: 0.8rem;
-            color: #666;
-            margin-top: 2px;
+            margin-bottom: 0.3rem;
+            color: #8e8e93;
+        }
+
+        .message .time {
+            font-size: 0.7rem;
+            margin-top: 0.3rem;
+            text-align: right;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .message.received .time {
+            color: #8e8e93;
         }
 
         .input-container {
+            background-color: #ffffff;
+            padding: 1rem;
+            border-top: 1px solid #e5e5ea;
             display: flex;
-            gap: 10px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
+            gap: 0.5rem;
+            position: sticky;
+            bottom: 0;
         }
 
-        #message-input {
+        .input-container input {
             flex: 1;
-            padding: 12px 15px;
+            padding: 0.8rem 1rem;
             border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
+            border-radius: 1rem;
+            background-color: #f2f2f7;
             font-size: 1rem;
             outline: none;
-            transition: all 0.3s ease;
         }
 
-        #message-input:focus {
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
-        }
-
-        #send-button {
-            padding: 12px 25px;
-            background: #4a90e2;
-            color: #fff;
+        .input-container button {
+            background-color: #007aff;
+            color: white;
             border: none;
-            border-radius: 8px;
-            cursor: pointer;
+            border-radius: 1rem;
+            padding: 0.8rem 1.2rem;
             font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
 
-        #send-button:hover {
-            background: #357abd;
-            transform: translateY(-2px);
+        .input-container button:hover {
+            background-color: #0062cc;
+        }
+
+        .input-container button:disabled {
+            background-color: #8e8e93;
+            cursor: not-allowed;
         }
 
         .system-message {
             align-self: center;
-            background: rgba(255, 255, 255, 0.1);
-            color: #aaa;
-            padding: 8px 15px;
-            border-radius: 20px;
+            background-color: #e5e5ea;
+            color: #8e8e93;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
             font-size: 0.9rem;
-            margin: 10px 0;
+            margin: 0.5rem 0;
         }
 
-        .file-upload {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .file-upload input[type="file"] {
-            display: none;
-        }
-
-        .file-upload label {
-            padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .file-upload label:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .file-preview {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .file-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 12px;
-            border-radius: 8px;
+        .user-count {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background-color: #007aff;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
             font-size: 0.9rem;
-        }
-
-        .file-item button {
-            background: none;
-            border: none;
-            color: #ff6b6b;
-            cursor: pointer;
-            font-size: 1.2rem;
-        }
-
-        .typing-indicator {
-            font-size: 0.9rem;
-            color: #aaa;
-            margin-top: 5px;
-            height: 20px;
-        }
-
-        .emoji-picker {
-            position: relative;
-        }
-
-        .emoji-button {
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-        }
-
-        .emoji-button:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .emoji-container {
-            position: absolute;
-            bottom: 100%;
-            right: 0;
-            margin-bottom: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            padding: 10px;
-            display: none;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .emoji-container.show {
-            display: block;
-        }
-
-        .emoji-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 5px;
-        }
-
-        .emoji-item {
-            padding: 5px;
-            cursor: pointer;
-            text-align: center;
-            border-radius: 5px;
-            transition: background 0.2s;
-        }
-
-        .emoji-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-
-            .header {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-
-            .room-info {
-                flex-direction: column;
-            }
-
-            .message {
-                max-width: 90%;
-            }
-
-            .input-container {
-                flex-direction: column;
-            }
-
-            #send-button {
-                width: 100%;
-            }
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Pseudonym</h1>
-            <div class="room-info">
-                <div class="room-name">
-                    <span id="room-name"></span>
-                    <span class="user-count" id="user-count">0명</span>
-                </div>
-            </div>
-        </div>
-        <div class="chat-container">
-            <div class="messages" id="messages"></div>
-            <div class="typing-indicator" id="typing-indicator"></div>
-            <div class="input-container">
-                <div class="file-upload">
-                    <input type="file" id="file-input" multiple>
-                    <label for="file-input">📎</label>
-                </div>
-                <div class="emoji-picker">
-                    <button class="emoji-button">😊</button>
-                    <div class="emoji-container" id="emoji-container">
-                        <div class="emoji-grid" id="emoji-grid"></div>
-                    </div>
-                </div>
-                <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
-                <button id="send-button">전송</button>
-            </div>
-            <div class="file-preview" id="file-preview"></div>
-        </div>
+    <div class="header">
+        <h2 id="roomName">채팅방</h2>
+        <div class="room-info" id="roomInfo"></div>
+    </div>
+    <div class="user-count" id="userCount">0명</div>
+    <div class="chat-container" id="chatContainer"></div>
+    <div class="input-container">
+        <input type="text" id="messageInput" placeholder="메시지를 입력하세요..." maxlength="500">
+        <button id="sendButton" disabled>전송</button>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const messageInput = document.getElementById('message-input');
-        const messagesDiv = document.getElementById('messages');
-        const userCountDiv = document.getElementById('user-count');
-        const roomNameSpan = document.getElementById('room-name');
+        const urlParams = new URLSearchParams(window.location.search);
+        const room = urlParams.get('room');
+        const nickname = urlParams.get('nickname');
+        const chatContainer = document.getElementById('chatContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const userCount = document.getElementById('userCount');
+        const roomName = document.getElementById('roomName');
+        const roomInfo = document.getElementById('roomInfo');
 
-        // 페이지 로드 시 채팅방 입장
-        window.onload = function() {
-            const username = localStorage.getItem('chatUsername');
-            const room = localStorage.getItem('chatRoom');
-            
-            if (!username || !room) {
-                window.location.href = '/login.html';
-                return;
-            }
-
-            roomNameSpan.textContent = room === 'public' ? '공개 채팅방' : '비공개 채팅방';
-            socket.emit('join', { username, room });
-        };
-
-        // 메시지 전송
-        function sendMessage() {
-            const message = messageInput.value.trim();
-            if (message) {
-                socket.emit('chat message', {
-                    text: message,
-                    username: localStorage.getItem('chatUsername'),
-                    room: localStorage.getItem('chatRoom')
-                });
-                messageInput.value = '';
-            }
+        // 방 정보 설정
+        if (room === 'public') {
+            roomName.textContent = '공개 채팅방';
+            roomInfo.textContent = '매일 자정에 초기화됩니다';
+        } else {
+            roomName.textContent = '채팅방';
         }
+
+        // 소켓 연결
+        socket.emit('join room', { room, nickname });
+
+        // 메시지 입력 이벤트
+        messageInput.addEventListener('input', () => {
+            sendButton.disabled = !messageInput.value.trim();
+        });
 
         // Enter 키로 메시지 전송
         messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 sendMessage();
             }
         });
 
+        // 전송 버튼 클릭 이벤트
+        sendButton.addEventListener('click', sendMessage);
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                socket.emit('chat message', {
+                    room,
+                    message,
+                    nickname
+                });
+                messageInput.value = '';
+                sendButton.disabled = true;
+            }
+        }
+
         // 메시지 수신
         socket.on('chat message', (data) => {
-            const messageDiv = document.createElement('div');
-            
-            if (data.type === 'system') {
-                messageDiv.className = 'system-message';
-                messageDiv.textContent = data.text;
-            } else {
-                const isSent = data.username === localStorage.getItem('chatUsername');
-                messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-                
-                const headerDiv = document.createElement('div');
-                headerDiv.className = 'message-header';
-                headerDiv.textContent = data.username;
-                
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'message-content';
-                contentDiv.textContent = data.text;
-                
-                const timeDiv = document.createElement('div');
-                timeDiv.className = 'message-time';
-                const now = new Date();
-                const hours = now.getHours().toString().padStart(2, '0');
-                const minutes = now.getMinutes().toString().padStart(2, '0');
-                timeDiv.textContent = `${hours}:${minutes}`;
-                
-                messageDiv.appendChild(headerDiv);
-                messageDiv.appendChild(contentDiv);
-                messageDiv.appendChild(timeDiv);
-            }
-            
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            appendMessage(data.message, data.nickname, data.timestamp, data.nickname === nickname);
+        });
+
+        // 시스템 메시지
+        socket.on('system message', (message) => {
+            appendSystemMessage(message);
         });
 
         // 사용자 수 업데이트
-        socket.on('user count update', (count) => {
-            const room = localStorage.getItem('chatRoom');
-            userCountDiv.textContent = `${room === 'public' ? count.public : count.private}명`;
+        socket.on('user count', (count) => {
+            userCount.textContent = `${count}명`;
         });
 
-        // 채팅방 나가기
-        function exitChat() {
-            localStorage.removeItem('chatUsername');
-            localStorage.removeItem('chatRoom');
-            window.location.href = '/login.html';
+        function appendMessage(message, sender, timestamp, isSent) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            
+            const time = new Date(timestamp).toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            messageDiv.innerHTML = `
+                ${!isSent ? `<div class="sender">${sender}</div>` : ''}
+                <div class="content">${message}</div>
+                <div class="time">${time}</div>
+            `;
+
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
+
+        function appendSystemMessage(message) {
+            const systemDiv = document.createElement('div');
+            systemDiv.className = 'system-message';
+            systemDiv.textContent = message;
+            chatContainer.appendChild(systemDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // 페이지 새로고침 시 스크롤 위치 유지
+        window.addEventListener('beforeunload', () => {
+            localStorage.setItem('chatScrollPosition', chatContainer.scrollTop);
+        });
+
+        window.addEventListener('load', () => {
+            const savedPosition = localStorage.getItem('chatScrollPosition');
+            if (savedPosition) {
+                chatContainer.scrollTop = savedPosition;
+                localStorage.removeItem('chatScrollPosition');
+            }
+        });
     </script>
 </body>
 </html> 

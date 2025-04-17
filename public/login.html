@@ -4,225 +4,256 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pseudonym - 방 선택</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a90e2">
     <style>
         body {
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            color: #fff;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #fff;
         }
+
         .container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            width: 400px;
+            width: 90%;
+            max-width: 500px;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         h1 {
             text-align: center;
             color: #fff;
-            margin-bottom: 10px;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            font-weight: 600;
-            letter-spacing: 2px;
-            font-size: 2.5em;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            font-weight: 300;
         }
-        .description {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 30px;
-            font-size: 1.1em;
-            line-height: 1.8;
-            padding: 0 20px;
+
+        .input-group {
+            margin-bottom: 1.5rem;
         }
-        .description br {
+
+        .input-group label {
             display: block;
-            content: "";
-            margin: 8px 0;
+            margin-bottom: 0.5rem;
+            color: #ccc;
         }
-        .room-option {
-            margin-bottom: 25px;
-            padding: 20px;
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .room-options {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .room-option {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .room-option:hover {
-            transform: translateY(-5px);
             background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
         }
+
         .room-option h3 {
-            margin: 0 0 10px 0;
+            margin: 0 0 0.5rem 0;
             color: #fff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 1.2em;
         }
+
         .room-option p {
             margin: 0;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.95em;
-            line-height: 1.5;
+            color: #ccc;
+            font-size: 0.9rem;
         }
-        .room-option .user-count {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            padding: 3px 12px;
-            border-radius: 15px;
-            font-size: 0.8em;
-            font-weight: 500;
+
+        .room-option.selected {
+            background: rgba(74, 144, 226, 0.2);
+            border-color: #4a90e2;
         }
-        input {
-            width: 100%;
-            padding: 12px 15px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            box-sizing: border-box;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-        }
-        input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-        input:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.1);
-        }
-        .error {
-            color: #ff6b6b;
+
+        .qr-container {
+            display: none;
             text-align: center;
-            margin-bottom: 15px;
-            display: none;
-            font-size: 0.9em;
-            padding: 10px;
-            background: rgba(255, 107, 107, 0.1);
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .qr-container.active {
+            display: block;
+        }
+
+        #qrCode {
+            max-width: 200px;
+            margin: 1rem auto;
+        }
+
+        .countdown {
+            font-size: 1.2rem;
+            color: #4a90e2;
+            margin-top: 1rem;
+        }
+
+        .button {
+            width: 100%;
+            padding: 1rem;
+            background: #4a90e2;
+            color: white;
+            border: none;
             border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .room-info {
-            font-size: 0.85em;
-            color: rgba(255, 255, 255, 0.5);
-            margin-top: 8px;
-            padding: 8px;
-            background-color: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            border-left: 3px solid rgba(255, 255, 255, 0.2);
+
+        .button:hover {
+            background: #357abd;
+            transform: translateY(-2px);
         }
-        .password-input {
-            display: none;
-            margin-top: 15px;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        .button:disabled {
+            background: #666;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Pseudonym</h1>
-        <div class="description">Pseudonym은 익명이라는 이름 아래<br>누구나 자유롭게 연결되는 보안 메신저입니다.</div>
-        <div class="error" id="error"></div>
-        <input type="text" id="username" placeholder="닉네임을 입력하세요" required>
         
-        <div class="room-option" onclick="selectRoom('public')">
-            <h3>공개방 <span class="user-count" id="public-count">0명</span></h3>
-            <p>비밀번호 없이 입장할 수 있는 채팅방입니다.</p>
-            <div class="room-info">※ 매일 자정에 채팅이 초기화됩니다.</div>
+        <div class="input-group">
+            <label for="nickname">닉네임</label>
+            <input type="text" id="nickname" placeholder="닉네임을 입력하세요" maxlength="20">
         </div>
 
-        <div class="room-option" onclick="selectRoom('private')">
-            <h3>비공개방 <span class="user-count" id="private-count">0명</span></h3>
-            <p>비밀번호가 필요한 채팅방입니다.</p>
-            <div class="room-info">※ 채팅 기록이 영구적으로 보관됩니다.</div>
-            <div class="password-input" id="private-password">
-                <input type="password" id="private-password-input" placeholder="비밀번호를 입력하세요">
+        <div class="room-options">
+            <div class="room-option" data-type="public">
+                <h3>공개 채팅방</h3>
+                <p>모든 사용자와 대화할 수 있는 공개 채팅방입니다.</p>
+            </div>
+            <div class="room-option" data-type="private">
+                <h3>비밀 채팅방</h3>
+                <p>초대된 사용자만 참여할 수 있는 비밀 채팅방입니다.</p>
+            </div>
+            <div class="room-option" data-type="temporary">
+                <h3>임시 채팅방</h3>
+                <p>팀 프로젝트를 위한 임시 채팅방입니다.</p>
             </div>
         </div>
+
+        <div class="qr-container">
+            <h3>채팅방 초대 QR코드</h3>
+            <div id="qrCode"></div>
+            <div class="countdown">10초 후 자동으로 채팅방으로 이동합니다...</div>
+        </div>
+
+        <button class="button" id="enterButton" disabled>입장하기</button>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script>
-        const socket = io();
-        let selectedRoom = null;
+        let selectedRoomType = null;
+        let countdownInterval;
 
-        // 초기 접속자 수 표시
-        socket.on('initial user count', (count) => {
-            updateUserCount(count);
+        // 방 선택 이벤트
+        document.querySelectorAll('.room-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.room-option').forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedRoomType = option.dataset.type;
+                updateEnterButton();
+            });
         });
 
-        // 실시간 접속자 수 업데이트
-        socket.on('user count update', (count) => {
-            updateUserCount(count);
+        // 닉네임 입력 이벤트
+        document.getElementById('nickname').addEventListener('input', updateEnterButton);
+
+        function updateEnterButton() {
+            const nickname = document.getElementById('nickname').value.trim();
+            const button = document.getElementById('enterButton');
+            button.disabled = !nickname || !selectedRoomType;
+        }
+
+        // 입장하기 버튼 클릭 이벤트
+        document.getElementById('enterButton').addEventListener('click', () => {
+            const nickname = document.getElementById('nickname').value.trim();
+            if (!nickname || !selectedRoomType) return;
+
+            if (selectedRoomType === 'public') {
+                window.location.href = `/chat.html?room=public&nickname=${encodeURIComponent(nickname)}`;
+            } else if (selectedRoomType === 'private') {
+                window.location.href = `/create.html?nickname=${encodeURIComponent(nickname)}`;
+            } else if (selectedRoomType === 'temporary') {
+                const roomId = generateRoomId();
+                const roomUrl = `${window.location.origin}/chat.html?room=${roomId}&nickname=${encodeURIComponent(nickname)}`;
+                
+                // QR 코드 생성
+                QRCode.toCanvas(document.getElementById('qrCode'), roomUrl, {
+                    width: 200,
+                    margin: 2,
+                    color: {
+                        dark: '#4a90e2',
+                        light: '#ffffff'
+                    }
+                });
+
+                // QR 코드 컨테이너 표시
+                document.querySelector('.qr-container').classList.add('active');
+                
+                // 10초 카운트다운
+                let countdown = 10;
+                const countdownElement = document.querySelector('.countdown');
+                countdownInterval = setInterval(() => {
+                    countdown--;
+                    countdownElement.textContent = `${countdown}초 후 자동으로 채팅방으로 이동합니다...`;
+                    if (countdown <= 0) {
+                        clearInterval(countdownInterval);
+                        window.location.href = roomUrl;
+                    }
+                }, 1000);
+            }
         });
 
-        function updateUserCount(count) {
-            document.getElementById('public-count').textContent = `${count.public}명`;
-            document.getElementById('private-count').textContent = `${count.private}명`;
+        function generateRoomId() {
+            return Math.random().toString(36).substring(2, 8);
         }
 
-        function selectRoom(roomType) {
-            const username = document.getElementById('username').value.trim();
-            const error = document.getElementById('error');
-            
-            if (!username) {
-                error.textContent = '닉네임을 입력해주세요';
-                error.style.display = 'block';
-                return;
-            }
-
-            selectedRoom = roomType;
-            
-            if (roomType === 'private') {
-                document.getElementById('private-password').style.display = 'block';
-                document.getElementById('private-password-input').focus();
-            } else {
-                enterRoom();
-            }
-        }
-
-        function enterRoom() {
-            const username = document.getElementById('username').value.trim();
-            const error = document.getElementById('error');
-            
-            if (selectedRoom === 'private') {
-                const password = document.getElementById('private-password-input').value;
-                if (password !== '0724') {
-                    error.textContent = '비밀번호가 틀렸습니다. 관리자에게 문의하세요.';
-                    error.style.display = 'block';
-                    return;
-                }
-            }
-
-            // 로컬 스토리지에 닉네임과 방 정보 저장
-            localStorage.setItem('chatUsername', username);
-            localStorage.setItem('chatRoom', selectedRoom);
-            
-            // 채팅 페이지로 이동
-            window.location.href = '/';
-        }
-
-        // Enter 키로 비밀번호 입력
-        document.getElementById('private-password-input')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                enterRoom();
-            }
+        // PWA 설치 프롬프트
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
         });
     </script>
 </body>

@@ -1,0 +1,21 @@
+{
+    "name": "Pseudonym",
+    "short_name": "Pseudonym",
+    "description": "간편한 임시 채팅 서비스",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1a1a1a",
+    "theme_color": "#4a90e2",
+    "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+} 
